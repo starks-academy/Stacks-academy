@@ -43,7 +43,7 @@ export default function Navbar() {
               ))}
             </div>
             <button className="bg-brand-orange hover:bg-orange-500 text-white font-medium px-6 py-2.5 rounded-md transition-colors shadow-[0_0_15px_rgba(245,131,32,0.3)] text-sm">
-              Start Learning
+              Connect Wallet
             </button>
           </div>
 
@@ -79,7 +79,7 @@ export default function Navbar() {
             ))}
             <div className="pt-2 px-3">
               <button className="w-full bg-brand-orange hover:bg-orange-500 text-white font-medium px-6 py-3 rounded-md transition-colors shadow-[0_0_15px_rgba(245,131,32,0.3)]">
-                Start Learning
+                Connect Wallet
               </button>
             </div>
           </div>
