@@ -1,6 +1,13 @@
-import { Twitter, Users, ExternalLink } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Twitter, Users, ExternalLink, Filter } from "lucide-react";
 
 export default function BuildersConnectPage() {
+  const [activeFilter, setActiveFilter] = useState("All");
+
+  const categories = ["All", "Ecosystem", "DeFi", "NFTs", "Tooling"];
+
   const builders = [
     {
       id: 1,
@@ -13,6 +20,7 @@ export default function BuildersConnectPage() {
       followers: "12.5K",
       avatarGradient: "from-brand-orange to-red-500",
       initials: "SD",
+      category: "Ecosystem",
     },
     {
       id: 2,
@@ -25,6 +33,7 @@ export default function BuildersConnectPage() {
       followers: "154K",
       avatarGradient: "from-purple-500 to-indigo-500",
       initials: "SO",
+      category: "Ecosystem",
     },
     {
       id: 3,
@@ -37,6 +46,7 @@ export default function BuildersConnectPage() {
       followers: "185K",
       avatarGradient: "from-cyan-500 to-blue-600",
       initials: "MA",
+      category: "Ecosystem",
     },
     {
       id: 4,
@@ -49,6 +59,7 @@ export default function BuildersConnectPage() {
       followers: "4.2K",
       avatarGradient: "from-emerald-400 to-teal-600",
       initials: "AD",
+      category: "DeFi",
     },
     {
       id: 5,
@@ -61,6 +72,7 @@ export default function BuildersConnectPage() {
       followers: "8.9K",
       avatarGradient: "from-pink-500 to-rose-500",
       initials: "SC",
+      category: "NFTs",
     },
     {
       id: 6,
@@ -73,8 +85,14 @@ export default function BuildersConnectPage() {
       followers: "42K",
       avatarGradient: "from-orange-400 to-amber-600",
       initials: "HS",
+      category: "Tooling",
     },
   ];
+
+  const filteredBuilders =
+    activeFilter === "All"
+      ? builders
+      : builders.filter((b) => b.category === activeFilter);
 
   return (
     <main className="min-h-screen pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -93,9 +111,29 @@ export default function BuildersConnectPage() {
         </div>
       </div>
 
+      {/* Filter Options */}
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
+        <span className="flex items-center gap-1.5 text-sm text-gray-500 mr-2">
+          <Filter className="w-4 h-4" /> Filters:
+        </span>
+        {categories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setActiveFilter(category)}
+            className={`cursor-pointer px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+              activeFilter === category
+                ? "bg-brand-orange text-white shadow-[0_0_15px_rgba(245,131,32,0.3)] border-brand-orange"
+                : "bg-[#1A1A24] text-gray-400 border border-gray-800 hover:border-gray-500 hover:text-white"
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
       {/* Grid of Profiles */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {builders.map((builder) => (
+        {filteredBuilders.map((builder) => (
           <div
             key={builder.id}
             className="group bg-[#1A1A24]/50 border border-gray-800 rounded-2xl p-6 backdrop-blur-sm hover:border-gray-600 transition-all duration-300 relative overflow-hidden"
