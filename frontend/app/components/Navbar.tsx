@@ -11,7 +11,7 @@ export default function Navbar() {
     { name: "Curriculum", href: "#" },
     { name: "Builders", href: "#" },
     { name: "Community", href: "#" },
-    { name: "Dashboard", href: "/dashboard" },
+    { name: "Profile", href: "/dashboard" },
   ];
 
   return (
