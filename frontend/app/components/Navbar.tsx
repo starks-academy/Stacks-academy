@@ -9,7 +9,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Curriculum", href: "#" },
-    { name: "Builders", href: "#" },
+    { name: "Builders Connect", href: "/builders-connect" },
     { name: "Community", href: "#" },
     { name: "Profile", href: "/dashboard" },
   ];
