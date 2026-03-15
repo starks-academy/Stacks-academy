@@ -1,13 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import {
-  authenticate,
-  isConnected,
-  getUserData,
-  disconnect,
-  showSignMessage,
-} from "@stacks/connect";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2, Wallet, LogOut, ChevronDown } from "lucide-react";
 
@@ -34,39 +27,44 @@ export default function WalletConnectButton() {
     setError(null);
 
     try {
-      await authenticate({
+      // Dynamically import @stacks/connect only in the browser to avoid SSR errors
+      const stacks = await import("@stacks/connect");
+
+      await stacks.authenticate({
         appDetails: {
           name: "Stacks Academy",
-          icon:
-            typeof window !== "undefined"
-              ? `${window.location.origin}/favicon.ico`
-              : "",
+          icon: `${window.location.origin}/favicon.ico`,
         },
-        // Called when the user approves the connection in their Stacks wallet
         onFinish: async () => {
           try {
-            if (!isConnected()) throw new Error("Wallet not connected");
+            if (!stacks.isConnected()) throw new Error("Wallet not connected");
 
-            const userData = getUserData();
-            if (!userData) throw new Error("No user data returned from wallet");
+            const session = await stacks.getUserData();
+            if (!session) throw new Error("No user session from wallet");
 
+            // @stacks/connect v8 resolves UserSession — cast to access profile
+            const data = session as {
+              profile?: {
+                stxAddress?: { testnet?: string; mainnet?: string };
+              };
+            };
             const walletAddress =
-              userData.profile?.stxAddress?.testnet ||
-              userData.profile?.stxAddress?.mainnet;
-            if (!walletAddress) throw new Error("No STX address found");
+              data.profile?.stxAddress?.testnet ||
+              data.profile?.stxAddress?.mainnet;
+            if (!walletAddress)
+              throw new Error("No STX address found in wallet profile");
 
-            // Request a sign challenge from the backend
+            // Get challenge message from backend
             const message = await requestChallenge(walletAddress);
 
-            // Ask the wallet to sign the challenge message
-            showSignMessage({
+            // Sign the challenge
+            stacks.showSignMessage({
               message,
-              onFinish: async (data: { signature: string; publicKey: string }) => {
-                // Complete login: verify signature → get JWT
+              onFinish: async (payload: { signature: string; publicKey: string }) => {
                 await completeLogin(
                   walletAddress,
-                  data.signature,
-                  data.publicKey
+                  payload.signature,
+                  payload.publicKey
                 );
                 setConnecting(false);
               },
@@ -87,8 +85,13 @@ export default function WalletConnectButton() {
     }
   };
 
-  const handleLogout = () => {
-    disconnect();
+  const handleLogout = async () => {
+    try {
+      const stacks = await import("@stacks/connect");
+      stacks.disconnect();
+    } catch {
+      // ignore
+    }
     logout();
     setShowMenu(false);
   };
@@ -151,7 +154,9 @@ export default function WalletConnectButton() {
         )}
         {connecting ? "Connecting…" : "Connect Wallet"}
       </button>
-      {error && <p className="text-xs text-red-400 max-w-[220px] text-right">{error}</p>}
+      {error && (
+        <p className="text-xs text-red-400 max-w-[220px] text-right">{error}</p>
+      )}
     </div>
   );
 }
