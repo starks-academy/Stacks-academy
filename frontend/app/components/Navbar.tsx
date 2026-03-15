@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import WalletConnectButton from "./WalletConnectButton";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,9 +46,7 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
-            <button className="bg-brand-orange hover:bg-orange-500 text-white font-medium px-6 py-2.5 rounded-md transition-colors shadow-[0_0_15px_rgba(245,131,32,0.3)] text-sm">
-              Connect Wallet
-            </button>
+            <WalletConnectButton />
           </div>
 
           {/* Mobile menu button */}
@@ -81,9 +80,7 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="pt-2 px-3">
-              <button className="w-full bg-brand-orange hover:bg-orange-500 text-white font-medium px-6 py-3 rounded-md transition-colors shadow-[0_0_15px_rgba(245,131,32,0.3)]">
-                Connect Wallet
-              </button>
+              <WalletConnectButton />
             </div>
           </div>
         </div>
