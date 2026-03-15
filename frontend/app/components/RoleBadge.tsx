@@ -23,7 +23,7 @@ export default function RoleBadge({ role, isPro, size = "sm" }: RoleBadgeProps) 
       )}
       {isPro && (
         <span
-          className={`${textSize} ${px} bg-gradient-to-r from-brand-orange to-amber-400 text-white font-bold rounded uppercase tracking-wide`}
+          className={`${textSize} ${px} bg-linear-to-r from-brand-orange to-amber-400 text-white font-bold rounded uppercase tracking-wide`}
         >
           Pro
         </span>
