@@ -1,6 +1,7 @@
 export { authApi } from "./auth";
 export { usersApi } from "./users";
 export { gamificationApi } from "./gamification";
+export { galleryApi } from "./gallery";
 
 export type {
   AuthResponse,
@@ -12,3 +13,5 @@ export type {
   UserStats,
   XpInfo,
 } from "./types";
+
+export type { GalleryProject, CreateProjectDto } from "./gallery";
