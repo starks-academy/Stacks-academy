@@ -1,13 +1,25 @@
 import React from "react";
 import { User, Mail, Trophy, Zap } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useXp } from "@/hooks/useXp";
 
 export default function HeroProgressWidget({
-  journeyPercentage = 42,
-  completedPercentage = 69,
   inBoxCount = 13,
   nftsWonCount = 12,
-  level = "Level 3 Early Bird",
 }) {
+  const { user } = useAuth();
+  const { xpInfo } = useXp();
+
+  const journeyPercentage = xpInfo?.progress 
+    ? Math.min(Math.round(xpInfo.progress * 100), 100) 
+    : 0;
+    
+  // Placeholder completed percentage for course modules since we don't have course API yet
+  const completedPercentage = 0; 
+
+  const displayName = user?.displayName || "Anonymous Builder";
+  const userLevel = user?.level || 1;
+
   return (
     <div className="w-full max-w-4xl mx-auto mb-16 relative z-10">
       <div className="bg-[#14152C] rounded-2xl p-6 md:p-8 border border-[#2A2B4A] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
@@ -66,29 +78,35 @@ export default function HeroProgressWidget({
           {/* User Profile Mini */}
           <div className="flex items-center gap-4 bg-[#0A0B1A]/50 p-4 rounded-xl border border-[#2A2B4A]/50 shrink-0 w-full md:w-auto">
             <div className="w-12 h-12 rounded-full bg-linear-to-tr from-[#1F1B40] to-[#2A2B4A] flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-white/5"></div>
-                <User className="w-6 h-6 text-[#8E90B0]" />
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-white/5"></div>
+                    <User className="w-6 h-6 text-[#8E90B0]" />
+                  </>
+                )}
             </div>
             <div>
                 <p className="text-xs text-[#8E90B0]">Logged in as</p>
-                <p className="text-sm font-semibold text-white">Olowo Darey</p>
+                <p className="text-sm font-semibold text-white">{displayName}</p>
             </div>
           </div>
         </div>
 
         {/* Bottom Stats */}
         <div className="flex flex-wrap justify-between items-center pt-6 border-t border-[#2A2B4A]/50 gap-4">
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm text-gray-400">
             <Mail className="w-4 h-4 text-[#F58320]" />
-            <span className="text-white font-medium">{inBoxCount} In Box</span>
+            <span className="font-medium text-white">{inBoxCount} In Box</span>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm text-gray-400">
             <Trophy className="w-4 h-4 text-[#F58320]" />
-            <span className="text-white font-medium">{nftsWonCount} NFTs Won</span>
+            <span className="font-medium text-white">{nftsWonCount} NFTs Won</span>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm text-gray-400">
             <Zap className="w-4 h-4 text-[#F58320]" />
-            <span className="text-white font-medium">{level} Level 3 Early Bird</span>
+            <span className="font-medium text-white">Level {userLevel}</span>
           </div>
         </div>
       </div>
