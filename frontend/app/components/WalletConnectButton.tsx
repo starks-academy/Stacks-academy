@@ -32,39 +32,58 @@ export default function WalletConnectButton() {
 
       // ─── Step 1: Open wallet and get address (v8 request API) ──────────────
       const addressResponse = await stacks.request("getAddresses");
+      console.log("[WalletConnect] getAddresses response:", addressResponse);
 
-      // The response differs between wallets. We look for a mainnet or
-      // testnet STX address from the returned addresses array.
+      // The response differs between wallets. The `addresses` array can include
+      // BTC, Ordinals, and STX entries. We find the STX one by:
+      //   1. matching symbol === "STX" (most wallets)
+      //   2. falling back to address prefix: SP = mainnet, ST = testnet
       type AddressEntry = { symbol: string; address: string; publicKey?: string };
       const addresses: AddressEntry[] = (addressResponse as { addresses?: AddressEntry[] })?.addresses ?? [];
 
       const stxEntry =
-        addresses.find((a) => a.symbol === "STX") ?? addresses[0];
+        addresses.find((a) => a.symbol === "STX") ??
+        addresses.find((a) => a.address?.startsWith("SP") || a.address?.startsWith("ST"));
+
+      console.log("[WalletConnect] STX entry selected:", stxEntry);
 
       if (!stxEntry?.address) {
-        throw new Error("No STX address returned by wallet");
+        throw new Error(
+          `No STX address found in wallet response. Got: ${addresses.map(a => `${a.symbol}:${a.address}`).join(", ")}`
+        );
+      }
+
+      if (!stxEntry.address.startsWith("SP") && !stxEntry.address.startsWith("ST")) {
+        throw new Error(`Expected a Stacks address (SP.../ST...) but got: ${stxEntry.address}`);
       }
 
       const walletAddress = stxEntry.address;
       const publicKey = stxEntry.publicKey ?? "";
+      console.log("[WalletConnect] Using wallet address:", walletAddress);
 
       // ─── Step 2: Request a sign challenge from the backend ─────────────────
       const message = await requestChallenge(walletAddress);
 
-      // ─── Step 3: Ask the wallet to sign the challenge (v8 request API) ────
-      const signResponse = await stacks.request("stx_signMessage", {
-        message,
+      // ─── Step 3: Ask the wallet to sign the challenge ──────────────────────
+      // Use showSignMessage (the proper high-level wrapper) instead of the raw
+      // request('stx_signMessage') call, which requires internal param formatting.
+      const signature = await new Promise<string>((resolve, reject) => {
+        stacks.showSignMessage({
+          message,
+          onFinish: (payload: { signature: string; publicKey: string }) => {
+            console.log("[WalletConnect] Sign payload:", payload);
+            resolve(payload.signature);
+          },
+          onCancel: () => reject(new Error("user cancelled")),
+        });
       });
-
-      const signature = (signResponse as { signature?: string })?.signature;
-      if (!signature) throw new Error("Wallet did not return a signature");
 
       // ─── Step 4: Verify the signed message with the backend ────────────────
       await completeLogin(walletAddress, signature, publicKey);
       setConnecting(false);
 
     } catch (err: unknown) {
-      // If user just closed the wallet popup, don't show an error
+      // Suppress silent wallet cancellations — don't show an error for those
       const msg = err instanceof Error ? err.message : String(err);
       if (!msg.toLowerCase().includes("user cancel") && !msg.toLowerCase().includes("user rejected")) {
         setError(msg || "Connection failed. Try again.");
