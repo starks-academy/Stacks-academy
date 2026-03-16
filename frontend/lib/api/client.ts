@@ -23,8 +23,22 @@ export async function request<T>(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error?.message || "API request failed");
+    // Backend error may be wrapped in error.error.message or error.message
+    const message =
+      error?.error?.message ||
+      (Array.isArray(error?.message) ? error.message[0] : error?.message) ||
+      "API request failed";
+    throw new Error(message);
   }
 
-  return res.json();
+  const json = await res.json();
+
+  // Unwrap the backend response envelope: { success: true, data: {...}, meta: {...} }
+  // If the response has a `data` field and a `success` field, return just `data`.
+  if (json && typeof json === "object" && "success" in json && "data" in json) {
+    return json.data as T;
+  }
+
+  // Otherwise return the whole response (e.g. for plain objects)
+  return json as T;
 }

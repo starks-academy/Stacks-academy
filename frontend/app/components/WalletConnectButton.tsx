@@ -81,7 +81,7 @@ export default function WalletConnectButton() {
           stacks.showSignMessage({
             message,
             onFinish: (payload: SignResult) => {
-              console.log("[WalletConnect] showSignMessage payload:", payload);import { isFragment } from 'react-is';
+              console.log("[WalletConnect] showSignMessage payload:", payload);
               resolve({ signature: payload.signature, publicKey: payload.publicKey });
             },
             onCancel: () => reject(new Error("user cancelled")),
