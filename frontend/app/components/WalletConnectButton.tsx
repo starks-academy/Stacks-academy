@@ -30,57 +30,45 @@ export default function WalletConnectButton() {
       // Dynamically import @stacks/connect only in the browser to avoid SSR errors
       const stacks = await import("@stacks/connect");
 
-      await stacks.authenticate({
-        appDetails: {
-          name: "Stacks Academy",
-          icon: `${window.location.origin}/favicon.ico`,
-        },
-        onFinish: async () => {
-          try {
-            if (!stacks.isConnected()) throw new Error("Wallet not connected");
+      // ─── Step 1: Open wallet and get address (v8 request API) ──────────────
+      const addressResponse = await stacks.request("getAddresses");
 
-            const session = await stacks.getUserData();
-            if (!session) throw new Error("No user session from wallet");
+      // The response differs between wallets. We look for a mainnet or
+      // testnet STX address from the returned addresses array.
+      type AddressEntry = { symbol: string; address: string; publicKey?: string };
+      const addresses: AddressEntry[] = (addressResponse as { addresses?: AddressEntry[] })?.addresses ?? [];
 
-            // @stacks/connect v8 resolves UserSession — cast to access profile
-            const data = session as {
-              profile?: {
-                stxAddress?: { testnet?: string; mainnet?: string };
-              };
-            };
-            const walletAddress =
-              data.profile?.stxAddress?.testnet ||
-              data.profile?.stxAddress?.mainnet;
-            if (!walletAddress)
-              throw new Error("No STX address found in wallet profile");
+      const stxEntry =
+        addresses.find((a) => a.symbol === "STX") ?? addresses[0];
 
-            // Get challenge message from backend
-            const message = await requestChallenge(walletAddress);
+      if (!stxEntry?.address) {
+        throw new Error("No STX address returned by wallet");
+      }
 
-            // Sign the challenge
-            stacks.showSignMessage({
-              message,
-              onFinish: async (payload: { signature: string; publicKey: string }) => {
-                await completeLogin(
-                  walletAddress,
-                  payload.signature,
-                  payload.publicKey
-                );
-                setConnecting(false);
-              },
-              onCancel: () => setConnecting(false),
-            });
-          } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Sign-in failed");
-            setConnecting(false);
-          }
-        },
-        onCancel: () => setConnecting(false),
+      const walletAddress = stxEntry.address;
+      const publicKey = stxEntry.publicKey ?? "";
+
+      // ─── Step 2: Request a sign challenge from the backend ─────────────────
+      const message = await requestChallenge(walletAddress);
+
+      // ─── Step 3: Ask the wallet to sign the challenge (v8 request API) ────
+      const signResponse = await stacks.request("stx_signMessage", {
+        message,
       });
+
+      const signature = (signResponse as { signature?: string })?.signature;
+      if (!signature) throw new Error("Wallet did not return a signature");
+
+      // ─── Step 4: Verify the signed message with the backend ────────────────
+      await completeLogin(walletAddress, signature, publicKey);
+      setConnecting(false);
+
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Connection failed. Try again."
-      );
+      // If user just closed the wallet popup, don't show an error
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.toLowerCase().includes("user cancel") && !msg.toLowerCase().includes("user rejected")) {
+        setError(msg || "Connection failed. Try again.");
+      }
       setConnecting(false);
     }
   };
