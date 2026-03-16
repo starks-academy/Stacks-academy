@@ -44,7 +44,7 @@ export default function WalletConnectButton() {
 
       if (!stxEntry?.address || (!stxEntry.address.startsWith("SP") && !stxEntry.address.startsWith("ST"))) {
         throw new Error(
-          `Could not find a valid STX address. Got: ${addresses.map((a) => `${a.symbol}:${a.address}`).join(", ")}`
+          `No STX address found. Raw: ${JSON.stringify(addressResponse)}`
         );
       }
 
@@ -54,15 +54,18 @@ export default function WalletConnectButton() {
       // ─── Step 2: Get challenge message from backend ─────────────────────────
       const message = await requestChallenge(walletAddress);
 
-      // ─── Step 3: Sign the challenge — capture BOTH signature AND publicKey ──
-      // The backend uses verifyMessageSignatureRsv({ message, signature, publicKey })
-      // so we MUST use the publicKey from the sign response, not from getAddresses.
+      // ─── Step 3: Sign the challenge — get BOTH signature AND publicKey ──────
+      // Backend uses verifyMessageSignatureRsv({ message, signature, publicKey })
       type SignResult = { signature: string; publicKey: string };
       let signResult: SignResult | null = null;
 
       try {
-        // The documented v8 way: request() returns { signature, publicKey }
-        const resp = await stacks.request("stx_signMessage", { message });
+        // Cast params to bypass TS type check — messageType:"utf8" is a
+        // runtime requirement for Leather wallet but not in v8 type defs yet
+        const resp = await stacks.request(
+          "stx_signMessage",
+          { message, messageType: "utf8" } as never
+        );
         const r = resp as Partial<SignResult>;
         if (r.signature && r.publicKey) {
           signResult = { signature: r.signature, publicKey: r.publicKey };
@@ -72,13 +75,13 @@ export default function WalletConnectButton() {
         console.warn("[WalletConnect] request() sign failed, trying showSignMessage:", e);
       }
 
-      // Fallback: legacy showSignMessage wrapper (also returns publicKey in payload)
+      // Fallback: legacy showSignMessage wrapper
       if (!signResult) {
         signResult = await new Promise<SignResult>((resolve, reject) => {
           stacks.showSignMessage({
             message,
             onFinish: (payload: SignResult) => {
-              console.log("[WalletConnect] showSignMessage payload:", payload);
+              console.log("[WalletConnect] showSignMessage payload:", payload);import { isFragment } from 'react-is';
               resolve({ signature: payload.signature, publicKey: payload.publicKey });
             },
             onCancel: () => reject(new Error("user cancelled")),
@@ -87,9 +90,9 @@ export default function WalletConnectButton() {
       }
 
       if (!signResult?.signature) throw new Error("Wallet did not return a signature");
-      if (!signResult?.publicKey) throw new Error("Wallet did not return a publicKey — required for verification");
+      if (!signResult?.publicKey) throw new Error("Wallet did not return a publicKey");
 
-      // ─── Step 4: Verify with the backend (sends walletAddress, signature, publicKey)
+      // ─── Step 4: Verify with backend ───────────────────────────────────────
       await completeLogin(walletAddress, signResult.signature, signResult.publicKey);
       setConnecting(false);
 
