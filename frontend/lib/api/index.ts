@@ -5,6 +5,7 @@ export { galleryApi } from "./gallery";
 export { coursesApi } from "./courses";
 export { certificatesApi } from "./certificates";
 export { buildersApi } from "./builders";
+export { assessmentsApi } from "./assessments";
 
 export type {
   AuthResponse,
@@ -24,3 +25,13 @@ export type {
   CourseStep,
   CourseProgress,
 } from "./courses";
+export type { Certificate, MintCertificateDto } from "./certificates";
+export type { BuilderProfile, SubmitBuilderDto, BuilderCategory } from "./builders";
+export type {
+  QuizSession,
+  QuizQuestion,
+  GradeResult,
+  QuizQuota,
+  GenerateQuizDto,
+  SubmitAnswersDto,
+} from "./assessments";
