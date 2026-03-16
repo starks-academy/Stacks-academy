@@ -12,7 +12,6 @@ export default function Navbar() {
     { name: "Learning Path", href: "/learning-path" },
     { name: "AI Tutor", href: "/ai-tutor" },
     { name: "Builders Connect", href: "/builders-connect" },
-    { name: "Certificates", href: "/certificates" },
     { name: "Profile", href: "/dashboard" },
   ];
 

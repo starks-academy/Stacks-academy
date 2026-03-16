@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useXp } from "@/hooks/useXp";
@@ -104,6 +105,9 @@ export default function ProfileHeader() {
           </div>
 
           <div className="hidden sm:flex gap-3 pb-2">
+            <Link href="/certificates" className="bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-brand-orange">
+              My Certificates
+            </Link>
             <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10">
               Edit Profile
             </button>
