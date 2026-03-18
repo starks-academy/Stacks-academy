@@ -9,34 +9,29 @@ import OptionItem, { OptionState } from "../components/OptionItem";
 import FeedbackAlert from "../components/FeedbackAlert";
 import QuizActions from "../components/QuizActions";
 import OpenEndedInput from "../components/OpenEndedInput";
-import { assessmentsApi, QuizSession, QuizQuestion } from "@/lib/api/assessments";
+import {
+  assessmentsApi,
+  QuizSession,
+  QuizQuestion,
+  QuizFormatDto,
+} from "@/lib/api/assessments";
 
-// Map topic keywords → moduleId (1-6 as accepted by the backend DTO)
-const TOPIC_TO_MODULE: Record<string, number> = {
-  "clarity": 1,
-  "stacks": 2,
-  "defi": 3,
-  "nft": 4,
-  "dao": 5,
-  "bitcoin": 6,
+// Map frontend format labels → backend QuizFormatDto values
+const FORMAT_MAP: Record<string, QuizFormatDto> = {
+  "multi-choice": "multi_choice",
+  "open-ended": "open_ended",
+  mixed: "mixed",
 };
 
-function getModuleId(topic: string): number {
-  const lower = topic.toLowerCase();
-  for (const [keyword, id] of Object.entries(TOPIC_TO_MODULE)) {
-    if (lower.includes(keyword)) return id;
-  }
-  // Default to module 1 if no match
-  return 1;
-}
-
-// We track answers as a map from questionId -> chosen option text
 type AnswerMap = Record<string, string>;
 
 function ActiveQuizInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const topic = searchParams.get("topic") || "Clarity";
+  const formatParam = searchParams.get("format") || "mixed";
+  const format: QuizFormatDto = FORMAT_MAP[formatParam] ?? "mixed";
+  const includeAdvanced = searchParams.get("advanced") === "1";
 
   const [session, setSession] = useState<QuizSession | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -50,21 +45,23 @@ function ActiveQuizInner() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittingFinal, setSubmittingFinal] = useState(false);
 
-  // Generate quiz on mount
+  // Generate quiz on mount using the real backend contract
   useEffect(() => {
-    const moduleId = getModuleId(topic);
     assessmentsApi
-      .generate({ moduleId, questionCount: 5 })
+      .generate({ topic, format, includeAdvanced })
       .then((sess) => {
         setSession(sess);
-        setQuestions(sess.questions ?? []);
+        setQuestions((sess.questions as QuizQuestion[]) ?? []);
       })
-      .catch((err) => setError(err?.message ?? "Failed to generate quiz. Please try again."))
+      .catch((err) =>
+        setError(err?.message ?? "Failed to generate quiz. Please try again."),
+      )
       .finally(() => setLoading(false));
-  }, [topic]);
+  }, [topic, format]);
 
   const currentQuestion: QuizQuestion | undefined = questions[currentIndex];
   const totalQuestions = questions.length;
+  const isMultipleChoice = currentQuestion?.type === "multiple-choice";
 
   const handleOptionClick = (optionId: string) => {
     if (!isSubmitted) setSelectedOptionId(optionId);
@@ -76,6 +73,21 @@ function ActiveQuizInner() {
 
   const hasSelectedAnswer =
     selectedOptionId !== null || openTextAnswer.trim().length > 0;
+
+  // For MC: check correctness immediately using the data we already have
+  const isCurrentAnswerCorrect = (() => {
+    if (!isSubmitted || !currentQuestion) return false;
+    if (currentQuestion.type === "multiple-choice") {
+      return (
+        selectedOptionId ===
+        (
+          currentQuestion as import("@/lib/api/assessments").MultipleChoiceQuestion
+        ).correctOptionId
+      );
+    }
+    // Open-ended: we can't grade locally, defer to backend
+    return false;
+  })();
 
   const handleCheck = () => {
     if (!hasSelectedAnswer || !currentQuestion) return;
@@ -89,12 +101,10 @@ function ActiveQuizInner() {
     setSubmittingFinal(true);
     try {
       const result = await assessmentsApi.submit(session.id, { answers });
-      // Store result so the results page can read it without a round-trip
       sessionStorage.setItem("quizResult", JSON.stringify(result));
       sessionStorage.setItem("quizTopic", topic);
       router.push("/ai-tutor/quiz/results");
     } catch {
-      // Fallback: still navigate but without data
       router.push("/ai-tutor/quiz/results");
     }
   }, [session, answers, topic, router]);
@@ -111,9 +121,15 @@ function ActiveQuizInner() {
   };
 
   const getOptionState = (optionId: string): OptionState => {
-    if (!isSubmitted) return selectedOptionId === optionId ? "selected" : "default";
-    // After submit, highlight user's pick — backend grading happens on full submit
-    return selectedOptionId === optionId ? "selected" : "default";
+    if (!isSubmitted)
+      return selectedOptionId === optionId ? "selected" : "default";
+    if (currentQuestion?.type !== "multiple-choice") return "default";
+    const correctId = (
+      currentQuestion as import("@/lib/api/assessments").MultipleChoiceQuestion
+    ).correctOptionId;
+    if (optionId === correctId) return "correct";
+    if (optionId === selectedOptionId) return "incorrect";
+    return "default";
   };
 
   if (loading) {
@@ -124,7 +140,9 @@ function ActiveQuizInner() {
         </div>
         <h2 className="text-2xl font-bold text-white">Generating Your Quiz…</h2>
         <p className="text-[#8E90B0] max-w-sm">
-          Claude is crafting personalized questions about <span className="text-brand-orange font-semibold">{topic}</span>. This takes a few seconds.
+          Claude is crafting personalized questions about{" "}
+          <span className="text-brand-orange font-semibold">{topic}</span>. This
+          takes a few seconds.
         </p>
       </div>
     );
@@ -133,7 +151,9 @@ function ActiveQuizInner() {
   if (error || questions.length === 0) {
     return (
       <div className="min-h-screen bg-[#0A0B1A] pt-32 flex flex-col items-center justify-center gap-6 text-center px-4">
-        <p className="text-red-400 text-lg font-medium">{error ?? "No questions were generated."}</p>
+        <p className="text-red-400 text-lg font-medium">
+          {error ?? "No questions were generated."}
+        </p>
         <button
           onClick={() => router.push("/ai-tutor")}
           className="mt-4 px-6 py-3 bg-brand-orange text-white rounded-xl font-bold hover:bg-orange-500 transition-colors"
@@ -148,7 +168,6 @@ function ActiveQuizInner() {
     <div className="min-h-screen bg-[#0A0B1A] pt-32 pb-20 px-4 md:px-8 font-sans flex justify-center">
       <div className="w-full max-w-3xl flex flex-col items-center">
         <div className="w-full bg-[#0F1023] rounded-3xl p-8 md:p-12 border border-[#2A2B4A]/50 shadow-2xl relative">
-
           <QuizHeader
             currentQuestion={currentIndex + 1}
             totalQuestions={totalQuestions}
@@ -165,23 +184,29 @@ function ActiveQuizInner() {
           />
 
           <div className="bg-[#14152C] rounded-2xl p-6 md:p-10 border border-[#2A2B4A] shadow-inner mb-8">
-            <QuestionDisplay question={currentQuestion.text} />
+            {/* Use the `question` field from the backend, not `text` */}
+            <QuestionDisplay question={currentQuestion.question} />
 
-            {/* Render options if the question has them, otherwise open-ended */}
-            {currentQuestion.options && currentQuestion.options.length > 0 ? (
+            {/* Optional code snippet */}
+            {currentQuestion.codeSnippet && (
+              <pre className="mt-4 mb-6 bg-[#0A0B1A] text-[#8E90B0] text-sm rounded-xl p-4 overflow-x-auto border border-[#2A2B4A]">
+                <code>{currentQuestion.codeSnippet}</code>
+              </pre>
+            )}
+
+            {isMultipleChoice ? (
               <div className="space-y-4">
-                {currentQuestion.options.map((opt, i) => {
-                  const optId = `opt_${i}`;
-                  return (
-                    <OptionItem
-                      key={optId}
-                      text={opt}
-                      state={getOptionState(optId)}
-                      onClick={() => handleOptionClick(optId)}
-                      disabled={isSubmitted}
-                    />
-                  );
-                })}
+                {(
+                  currentQuestion as import("@/lib/api/assessments").MultipleChoiceQuestion
+                ).options.map((opt) => (
+                  <OptionItem
+                    key={opt.id}
+                    text={opt.text}
+                    state={getOptionState(opt.id)}
+                    onClick={() => handleOptionClick(opt.id)}
+                    disabled={isSubmitted}
+                  />
+                ))}
               </div>
             ) : (
               <OpenEndedInput
@@ -192,11 +217,18 @@ function ActiveQuizInner() {
               />
             )}
 
-            {/* After checking, show a neutral "answer recorded" message since real grading happens server-side */}
             {isSubmitted && (
               <FeedbackAlert
-                isCorrect={true}
-                explanation="Your answer has been recorded. You'll see the full AI-graded breakdown on the results page."
+                isCorrect={
+                  currentQuestion.type === "multiple-choice"
+                    ? isCurrentAnswerCorrect
+                    : true
+                }
+                explanation={
+                  currentQuestion.type === "multiple-choice"
+                    ? currentQuestion.explanation
+                    : "Your answer has been recorded. You'll see the AI-graded breakdown on the results page."
+                }
               />
             )}
           </div>

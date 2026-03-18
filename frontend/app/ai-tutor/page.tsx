@@ -26,14 +26,29 @@ function AITutorForm() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      assessmentsApi.getQuota().then(setQuota).catch(() => null);
+      assessmentsApi
+        .getQuota()
+        .then(setQuota)
+        .catch(() => null);
     }
   }, [isAuthenticated]);
 
   const formatOptions = [
-    { id: "multi-choice" as QuizFormat, label: "Multi-Choice", icon: <ListChecks className="w-6 h-6 mb-3" /> },
-    { id: "open-ended" as QuizFormat, label: "Open-Ended", icon: <FileText className="w-6 h-6 mb-3" /> },
-    { id: "mixed" as QuizFormat, label: "Mixed", icon: <Shuffle className="w-6 h-6 mb-3" /> },
+    {
+      id: "multi-choice" as QuizFormat,
+      label: "Multi-Choice",
+      icon: <ListChecks className="w-6 h-6 mb-3" />,
+    },
+    {
+      id: "open-ended" as QuizFormat,
+      label: "Open-Ended",
+      icon: <FileText className="w-6 h-6 mb-3" />,
+    },
+    {
+      id: "mixed" as QuizFormat,
+      label: "Mixed",
+      icon: <Shuffle className="w-6 h-6 mb-3" />,
+    },
   ];
 
   const quotaExhausted = quota !== null && quota.remaining <= 0;
@@ -41,7 +56,12 @@ function AITutorForm() {
 
   const handleGenerate = () => {
     if (!canGenerate) return;
-    router.push(`/ai-tutor/quiz?topic=${encodeURIComponent(topic.trim())}&format=${selectedFormat}`);
+    const params = new URLSearchParams({
+      topic: topic.trim(),
+      format: selectedFormat!,
+      ...(includeAdvanced ? { advanced: "1" } : {}),
+    });
+    router.push(`/ai-tutor/quiz?${params.toString()}`);
   };
 
   return (
@@ -70,7 +90,6 @@ function AITutorForm() {
 
       {/* Configuration Form */}
       <div className="w-full space-y-10">
-
         {/* Topic Input */}
         <div>
           <label className="block text-[#8E90B0] font-medium mb-3">
@@ -97,13 +116,16 @@ function AITutorForm() {
                 key={option.id}
                 onClick={() => setSelectedFormat(option.id)}
                 className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 transition-all duration-200
-                  ${selectedFormat === option.id
-                    ? "bg-[#1F1B40] border-[#F58320] text-[#F58320] shadow-[0_0_20px_rgba(245,131,32,0.15)]"
-                    : "bg-[#14152C] border-[#2A2B4A] text-[#8E90B0] hover:border-[#F58320]/50 hover:text-white"
+                  ${
+                    selectedFormat === option.id
+                      ? "bg-[#1F1B40] border-[#F58320] text-[#F58320] shadow-[0_0_20px_rgba(245,131,32,0.15)]"
+                      : "bg-[#14152C] border-[#2A2B4A] text-[#8E90B0] hover:border-[#F58320]/50 hover:text-white"
                   }`}
               >
                 {option.icon}
-                <span className={`font-semibold ${selectedFormat === option.id ? "text-white" : ""}`}>
+                <span
+                  className={`font-semibold ${selectedFormat === option.id ? "text-white" : ""}`}
+                >
                   {option.label}
                 </span>
               </button>
@@ -116,10 +138,13 @@ function AITutorForm() {
           className="flex items-center p-5 rounded-xl border border-[#2A2B4A] bg-[#14152C]/50 hover:bg-[#14152C] transition-colors cursor-pointer"
           onClick={() => setIncludeAdvanced(!includeAdvanced)}
         >
-          <div className={`w-6 h-6 rounded border flex items-center justify-center mr-4 shrink-0 transition-colors
+          <div
+            className={`w-6 h-6 rounded border flex items-center justify-center mr-4 shrink-0 transition-colors
             ${includeAdvanced ? "bg-[#F58320] border-[#F58320]" : "bg-[#0A0B1A] border-[#2A2B4A]"}`}
           >
-            {includeAdvanced && <span className="text-[#0A0B1A] font-bold text-sm">✓</span>}
+            {includeAdvanced && (
+              <span className="text-[#0A0B1A] font-bold text-sm">✓</span>
+            )}
           </div>
           <span className="text-white">
             Include advanced questions for a deeper challenge
@@ -129,8 +154,8 @@ function AITutorForm() {
         {/* Quota exhausted warning */}
         {quotaExhausted && (
           <p className="text-center text-yellow-400 text-sm bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-5 py-3">
-            You&apos;ve used all your daily quiz generations. Resets at{" "}
-            {quota?.resetsAt ? new Date(quota.resetsAt).toLocaleTimeString() : "midnight"}.
+            You&apos;ve used all your daily quiz generations. Resets at
+            midnight.
           </p>
         )}
 
@@ -139,15 +164,15 @@ function AITutorForm() {
           onClick={handleGenerate}
           disabled={!canGenerate}
           className={`w-full py-5 rounded-xl text-lg font-bold flex items-center justify-center gap-3 transition-all
-            ${canGenerate
-              ? "bg-gradient-to-r from-[#F58320] to-[#FF4500] text-white shadow-[0_0_30px_rgba(245,131,32,0.4)] hover:shadow-[0_0_40px_rgba(245,131,32,0.6)]"
-              : "bg-[#14152C] text-[#8E90B0] cursor-not-allowed border border-[#2A2B4A]"
+            ${
+              canGenerate
+                ? "bg-gradient-to-r from-[#F58320] to-[#FF4500] text-white shadow-[0_0_30px_rgba(245,131,32,0.4)] hover:shadow-[0_0_40px_rgba(245,131,32,0.6)]"
+                : "bg-[#14152C] text-[#8E90B0] cursor-not-allowed border border-[#2A2B4A]"
             }`}
         >
           <Sparkles className="w-6 h-6" />
           Generate Quiz
         </button>
-
       </div>
     </div>
   );

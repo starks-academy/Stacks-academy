@@ -1,67 +1,106 @@
 import { request } from "@/lib/api/client";
 
-export interface QuizQuestion {
-  id: string;
+// ── Question types matching the backend question.types.ts ──────────────────
+
+export type QuestionType = "multiple-choice" | "open-ended";
+
+export interface QuestionOption {
+  id: string; // "a" | "b" | "c" | "d"
   text: string;
-  options: string[];
 }
+
+export interface BaseQuestion {
+  id: string;
+  type: QuestionType;
+  question: string;
+  codeSnippet?: string;
+  explanation: string;
+}
+
+export interface MultipleChoiceQuestion extends BaseQuestion {
+  type: "multiple-choice";
+  options: QuestionOption[];
+  correctOptionId: string;
+}
+
+export interface OpenEndedQuestion extends BaseQuestion {
+  type: "open-ended";
+  modelAnswer: string;
+}
+
+export type QuizQuestion = MultipleChoiceQuestion | OpenEndedQuestion;
+
+// ── Session / result shapes ────────────────────────────────────────────────
 
 export interface QuizSession {
   id: string;
-  moduleId: number;
+  userId: string;
+  topic: string;
+  format: "multi_choice" | "open_ended" | "mixed";
+  includeAdvanced: boolean;
   questions: QuizQuestion[];
-  status: "pending" | "submitted" | "graded";
   score?: number;
+  gradedAt?: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuestionResult {
+  questionId: string;
+  correct: boolean;
+  userAnswer: string;
+  feedback: string;
 }
 
 export interface GradeResult {
   sessionId: string;
   score: number;
-  passed: boolean;
-  feedback: string;
+  totalQuestions: number;
+  correctCount: number;
+  incorrectCount: number;
+  results: QuestionResult[];
 }
 
 export interface QuizQuota {
   used: number;
   limit: number;
   remaining: number;
-  resetsAt: string;
 }
 
+// ── Request DTOs matching the backend GenerateQuizDto ─────────────────────
+
+export type QuizFormatDto = "multi_choice" | "open_ended" | "mixed";
+
 export interface GenerateQuizDto {
-  moduleId: number;
-  questionCount?: number; // default: 5
+  topic: string;
+  format: QuizFormatDto;
+  includeAdvanced?: boolean;
 }
 
 export interface SubmitAnswersDto {
-  answers: Record<string, string>; // { questionId: selectedOption }
+  answers: Record<string, string>; // { questionId: optionId | openText }
 }
 
+// ── API client ────────────────────────────────────────────────────────────
+
 export const assessmentsApi = {
-  /**
-   * Ask the AI (Claude 3.5 Haiku) to generate a personalized quiz
-   * for a given course module.
-   */
+  /** Generate a personalized AI quiz. */
   generate: (dto: GenerateQuizDto) =>
     request<QuizSession>("/assessments/generate", {
       method: "POST",
       body: JSON.stringify(dto),
     }),
 
-  /**
-   * Submit quiz answers for AI grading.
-   * Returns the score, pass/fail status, and feedback.
-   */
+  /** Submit answers for AI grading. */
   submit: (sessionId: string, dto: SubmitAnswersDto) =>
     request<GradeResult>(`/assessments/${sessionId}/submit`, {
       method: "POST",
       body: JSON.stringify(dto),
     }),
 
-  /** Get the user's past quiz sessions and scores. */
+  /** Get the user's past quiz sessions. */
   getHistory: () => request<QuizSession[]>("/assessments/history"),
 
-  /** Check how many quizzes the user can still generate today. */
+  /** Check remaining daily quiz quota. */
   getQuota: () => request<QuizQuota>("/assessments/quota"),
 };
