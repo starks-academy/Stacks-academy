@@ -201,7 +201,7 @@ function ActiveQuizInner() {
                 ).options.map((opt) => (
                   <OptionItem
                     key={opt.id}
-                    text={opt.text}
+                    text={`${opt.id.toUpperCase()}. ${opt.text}`}
                     state={getOptionState(opt.id)}
                     onClick={() => handleOptionClick(opt.id)}
                     disabled={isSubmitted}

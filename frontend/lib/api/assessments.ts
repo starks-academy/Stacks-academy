@@ -58,6 +58,8 @@ export interface GradeResult {
   totalQuestions: number;
   correctCount: number;
   incorrectCount: number;
+  passed?: boolean;
+  feedback?: string;
   results: QuestionResult[];
 }
 
