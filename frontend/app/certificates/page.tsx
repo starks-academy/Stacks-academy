@@ -31,7 +31,7 @@ const MODULE_COLORS: Record<number, string> = {
 };
 
 export default function CertificatesPage() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [certs, setCerts] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [mintingId, setMintingId] = useState<number | null>(null);

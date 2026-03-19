@@ -4,19 +4,39 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { gamificationApi } from "@/lib/api";
 
+interface Badge {
+  id?: string;
+  name?: string;
+  badgeName?: string;
+  description?: string;
+  icon?: string;
+  date?: string;
+}
+
 export default function NFTShowcase() {
   const { isAuthenticated } = useAuth();
-  const [badges, setBadges] = useState<any[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      setLoading(true);
-      gamificationApi.getMyBadges()
-        .then(setBadges)
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    gamificationApi
+      .getMyBadges()
+      .then((data) => {
+        if (!cancelled) {
+          setBadges(data as Badge[]);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated]);
 
   return (
@@ -33,9 +53,9 @@ export default function NFTShowcase() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading ? (
-           <div className="col-span-full flex justify-center py-10">
-              <Loader2 className="w-8 h-8 text-brand-orange animate-spin" />
-           </div>
+          <div className="col-span-full flex justify-center py-10">
+            <Loader2 className="w-8 h-8 text-brand-orange animate-spin" />
+          </div>
         ) : badges.length > 0 ? (
           badges.map((nft, index) => (
             <div
@@ -53,7 +73,9 @@ export default function NFTShowcase() {
               </div>
 
               <div className="p-5">
-                <div className="text-xs text-gray-500 mb-1">{nft.date || "Just now"}</div>
+                <div className="text-xs text-gray-500 mb-1">
+                  {nft.date || "Just now"}
+                </div>
                 <h3 className="text-white font-bold mb-2 group-hover:text-brand-orange transition-colors">
                   {nft.name || nft.badgeName}
                 </h3>

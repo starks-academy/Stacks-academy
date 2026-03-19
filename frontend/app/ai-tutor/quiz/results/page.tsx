@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { RotateCcw, Plus, Trophy, AlertCircle, Sparkles } from "lucide-react";
 import ScoreSummaryCard from "../../components/ScoreSummaryCard";
@@ -8,23 +8,20 @@ import ResultsBreakdownCard from "../../components/ResultsBreakdownCard";
 import { GradeResult } from "@/lib/api/assessments";
 
 export default function QuizResultsPage() {
-  const [result, setResult] = useState<GradeResult | null>(null);
-  const [topic, setTopic] = useState("your quiz");
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
+  const [result] = useState<GradeResult | null>(() => {
+    if (typeof window === "undefined") return null;
     try {
       const raw = sessionStorage.getItem("quizResult");
-      const savedTopic = sessionStorage.getItem("quizTopic");
-      if (raw) setResult(JSON.parse(raw) as GradeResult);
-      if (savedTopic) setTopic(savedTopic);
+      return raw ? (JSON.parse(raw) as GradeResult) : null;
     } catch {
-      // ignore parse errors
+      return null;
     }
-    setLoaded(true);
-  }, []);
+  });
 
-  if (!loaded) return null;
+  const [topic] = useState<string>(() => {
+    if (typeof window === "undefined") return "your quiz";
+    return sessionStorage.getItem("quizTopic") ?? "your quiz";
+  });
 
   if (!result) {
     // Navigated here directly without completing a quiz

@@ -11,7 +11,6 @@ export default function OpenEndedInput({
   value,
   onChange,
   isSubmitted,
-  isCorrect,
 }: OpenEndedInputProps) {
   let containerClasses =
     "w-full p-4 rounded-xl border-2 transition-all duration-300 min-h-[150px] md:min-h-[200px] outline-none text-white resize-y";

@@ -109,18 +109,23 @@ function ActiveQuizInner() {
 
   // Generate quiz on mount using the real backend contract
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let cancelled = false;
     assessmentsApi
       .generate({ topic, format, includeAdvanced })
       .then((sess) => {
+        if (cancelled) return;
         setSession(sess);
         setQuestions((sess.questions as QuizQuestion[]) ?? []);
+        setLoading(false);
       })
-      .catch((err) =>
-        setError(err?.message ?? "Failed to generate quiz. Please try again."),
-      )
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err?.message ?? "Failed to generate quiz. Please try again.");
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [topic, format, includeAdvanced]);
 
   const currentQuestion: QuizQuestion | undefined = questions[currentIndex];

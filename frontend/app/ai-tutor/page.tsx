@@ -10,7 +10,6 @@ import {
   Coins,
   Zap,
   Layers,
-  FlaskConical,
   Rocket,
   BookOpen,
   Check,
@@ -64,14 +63,9 @@ function AITutorForm() {
 
   const [topic, setTopic] = useState(initialTopic);
   const [selectedFormat, setSelectedFormat] = useState<QuizFormat>(null);
-  const [includeAdvanced, setIncludeAdvanced] = useState(false);
+  const includeAdvanced = false;
   const [courses, setCourses] = useState<Course[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(!isTopicLocked);
-
-  useEffect(() => {
-    const t = searchParams.get("topic");
-    if (t) setTopic(t);
-  }, [searchParams]);
 
   useEffect(() => {
     if (isTopicLocked) return;

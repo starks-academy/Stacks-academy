@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { CheckCircle2, Circle, Lock, ArrowRight, Play } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Play } from "lucide-react";
 
 export type ModuleState = "completed" | "in-progress" | "locked";
 

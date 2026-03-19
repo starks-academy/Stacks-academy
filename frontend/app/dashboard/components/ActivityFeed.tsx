@@ -41,17 +41,26 @@ export default function ActivityFeed() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      setLoading(true);
-      gamificationApi
-        .getMyActivity(1, 10)
-        .then((res) => {
-          const list = Array.isArray(res) ? res : ((res as any)?.data ?? []);
-          setActivities(list);
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    gamificationApi
+      .getMyActivity(1, 10)
+      .then((res) => {
+        if (cancelled) return;
+        const list = Array.isArray(res)
+          ? res
+          : ((res as { data?: XpEvent[] })?.data ?? []);
+        setActivities(list);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated]);
 
   return (
