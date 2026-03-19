@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { RotateCcw, Plus, Trophy, AlertCircle } from "lucide-react";
+import { RotateCcw, Plus, Trophy, AlertCircle, Sparkles } from "lucide-react";
 import ScoreSummaryCard from "../../components/ScoreSummaryCard";
 import ResultsBreakdownCard from "../../components/ResultsBreakdownCard";
 import { GradeResult } from "@/lib/api/assessments";
@@ -74,7 +74,11 @@ export default function QuizResultsPage() {
                 : "bg-red-500/10 border-red-500/30 text-red-400"
             }`}
           >
-            <Trophy className="w-5 h-5 shrink-0" />
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${passed ? "bg-green-500/10" : "bg-red-500/10"}`}
+            >
+              <Trophy className="w-4 h-4" />
+            </div>
             <span className="font-semibold text-sm">
               {passed
                 ? `You passed! Great work on ${topic}.`
@@ -143,7 +147,10 @@ export default function QuizResultsPage() {
           {result.feedback && (
             <div className="mt-6 bg-[#14152C] border border-[#2A2B4A] rounded-xl p-6">
               <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                <span className="text-brand-orange">✦</span> AI Feedback
+                <div className="w-6 h-6 rounded-full bg-[#F58320]/10 flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-brand-orange" />
+                </div>
+                AI Feedback
               </h3>
               <p className="text-[#8E90B0] text-sm leading-relaxed whitespace-pre-line">
                 {result.feedback}

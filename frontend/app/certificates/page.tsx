@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, Award, ExternalLink, Loader2, Lock } from "lucide-react";
+import {
+  Shield,
+  Award,
+  ExternalLink,
+  Loader2,
+  Lock,
+  Check,
+} from "lucide-react";
 import { certificatesApi, Certificate } from "@/lib/api/certificates";
 import { useAuth } from "@/context/AuthContext";
 
@@ -52,9 +59,7 @@ export default function CertificatesPage() {
         moduleId: cert.moduleId,
         score: cert.score,
       });
-      setCerts((prev) =>
-        prev.map((c) => (c.id === updated.id ? updated : c))
-      );
+      setCerts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
     } catch {
       setError("Minting failed. Please try again.");
     } finally {
@@ -121,8 +126,10 @@ export default function CertificatesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {certs.map((cert) => {
-            const gradientClass = MODULE_COLORS[cert.moduleId] ?? "from-gray-500 to-gray-700";
-            const moduleName = MODULE_NAMES[cert.moduleId] ?? `Module ${cert.moduleId}`;
+            const gradientClass =
+              MODULE_COLORS[cert.moduleId] ?? "from-gray-500 to-gray-700";
+            const moduleName =
+              MODULE_NAMES[cert.moduleId] ?? `Module ${cert.moduleId}`;
             const isMinting = mintingId === cert.moduleId;
             const isMinted = !!cert.txId;
 
@@ -137,17 +144,25 @@ export default function CertificatesPage() {
                 <div className="p-6">
                   {/* Icon & module */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${gradientClass} flex items-center justify-center shadow-lg`}>
+                    <div
+                      className={`w-12 h-12 rounded-xl bg-linear-to-br ${gradientClass} flex items-center justify-center shadow-lg`}
+                    >
                       <Award className="w-6 h-6 text-white" />
                     </div>
                     <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border flex items-center gap-1 ${
                         isMinted
                           ? "bg-green-500/10 border-green-500/30 text-green-400"
                           : "bg-gray-800 border-gray-700 text-gray-400"
                       }`}
                     >
-                      {isMinted ? "✓ Minted on-chain" : "Not yet minted"}
+                      {isMinted ? (
+                        <>
+                          <Check className="w-3 h-3" /> Minted on-chain
+                        </>
+                      ) : (
+                        "Not yet minted"
+                      )}
                     </span>
                   </div>
 
@@ -156,7 +171,9 @@ export default function CertificatesPage() {
                   </h3>
                   <p className="text-sm text-gray-400 mb-1">
                     Score:{" "}
-                    <span className="text-white font-semibold">{cert.score}%</span>
+                    <span className="text-white font-semibold">
+                      {cert.score}%
+                    </span>
                   </p>
                   <p className="text-xs text-gray-600 mb-6">
                     Earned:{" "}

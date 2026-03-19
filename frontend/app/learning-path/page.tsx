@@ -4,18 +4,27 @@ import React, { useEffect, useState } from "react";
 import HeroProgressWidget from "./components/HeroProgressWidget";
 import ModuleCard, { Step, ModuleState } from "./components/ModuleCard";
 import FinalAssessmentCard from "./components/FinalAssessmentCard";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  Coins,
+  Zap,
+  FileText,
+  Code,
+  Layers,
+  Rocket,
+  BookOpen,
+} from "lucide-react";
 import { coursesApi, type Course } from "@/lib/api/courses";
 import { useAuth } from "@/context/AuthContext";
 
 // Map course id to icon component name (since icons can't come from backend)
 const COURSE_ICONS: Record<number, React.ReactNode> = {
-  1: <span className="text-lg">₿</span>,
-  2: <span className="text-lg">⚡</span>,
-  3: <span className="text-lg">📝</span>,
-  4: <span className="text-lg">🧱</span>,
-  5: <span className="text-lg">🔬</span>,
-  6: <span className="text-lg">🚀</span>,
+  1: <Coins className="w-5 h-5" />, // Bitcoin Fundamentals
+  2: <Zap className="w-5 h-5" />, // Introduction to Stacks
+  3: <FileText className="w-5 h-5" />, // Clarity Smart Contracts
+  4: <Code className="w-5 h-5" />, // Build dApps
+  5: <Layers className="w-5 h-5" />, // Advanced Smart Contract Patterns
+  6: <Rocket className="w-5 h-5" />, // Build Real Projects
 };
 
 function deriveModuleState(
@@ -113,7 +122,9 @@ export default function LearningPathPage() {
                   title={course.title}
                   description={course.description}
                   state={state}
-                  icon={COURSE_ICONS[course.id] ?? <span>📚</span>}
+                  icon={
+                    COURSE_ICONS[course.id] ?? <BookOpen className="w-5 h-5" />
+                  }
                   steps={steps}
                   progressPercentage={progressPct > 0 ? progressPct : undefined}
                   alignment={index % 2 === 0 ? "left" : "right"}

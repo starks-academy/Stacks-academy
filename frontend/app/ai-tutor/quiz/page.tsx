@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock, BookOpen } from "lucide-react";
 import QuizHeader from "../components/QuizHeader";
 import QuestionDisplay from "../components/QuestionDisplay";
 import OptionItem, { OptionState } from "../components/OptionItem";
@@ -297,7 +297,7 @@ function ActiveQuizInner() {
                     </p>
                   </div>
                   <div className="p-4 rounded-xl border border-[#2A2B4A] bg-[#0A0B1A]/60 flex items-center gap-3">
-                    <span className="text-[#F58320] shrink-0">⏳</span>
+                    <Clock className="w-4 h-4 text-[#F58320] shrink-0" />
                     <p className="text-[#8E90B0] text-sm">
                       Claude will grade your answer when you finish the quiz.
                     </p>
@@ -311,7 +311,7 @@ function ActiveQuizInner() {
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2A2B4A] bg-[#14152C] hover:border-[#F58320]/50 transition-colors group"
                       >
-                        <span className="text-sm">📖</span>
+                        <BookOpen className="w-4 h-4 text-[#F58320] shrink-0" />
                         <span className="text-[#8E90B0] text-sm group-hover:text-white transition-colors">
                           Learn more:{" "}
                           <span className="text-[#F58320]">{ref.label}</span>
@@ -335,7 +335,7 @@ function ActiveQuizInner() {
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2A2B4A] bg-[#14152C] hover:border-[#F58320]/50 transition-colors group"
                       >
-                        <span className="text-sm">📖</span>
+                        <BookOpen className="w-4 h-4 text-[#F58320] shrink-0" />
                         <span className="text-[#8E90B0] text-sm group-hover:text-white transition-colors">
                           Learn more:{" "}
                           <span className="text-[#F58320]">{ref.label}</span>

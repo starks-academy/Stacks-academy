@@ -6,6 +6,7 @@ export { coursesApi } from "./courses";
 export { certificatesApi } from "./certificates";
 export { buildersApi } from "./builders";
 export { assessmentsApi } from "./assessments";
+export { aiTutorApi } from "./ai-tutor";
 
 export type {
   AuthResponse,
@@ -26,7 +27,11 @@ export type {
   CourseProgress,
 } from "./courses";
 export type { Certificate, MintCertificateDto } from "./certificates";
-export type { BuilderProfile, SubmitBuilderDto, BuilderCategory } from "./builders";
+export type {
+  BuilderProfile,
+  SubmitBuilderDto,
+  BuilderCategory,
+} from "./builders";
 export type {
   QuizSession,
   QuizQuestion,
@@ -34,3 +39,16 @@ export type {
   GenerateQuizDto,
   SubmitAnswersDto,
 } from "./assessments";
+
+export type {
+  ChatResponse,
+  ChatSession as AiTutorSession,
+  PracticeQuestion,
+  PracticeQuizResponse,
+  PracticeAnswerFeedback,
+  ChatMessageDto,
+  GeneratePracticeQuizDto,
+  SubmitPracticeAnswerDto,
+  PracticeQuizFormat,
+} from "./ai-tutor";
+export { PracticeModule } from "./ai-tutor";

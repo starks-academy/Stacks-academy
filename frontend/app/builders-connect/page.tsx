@@ -10,6 +10,7 @@ import {
   Loader2,
   PlusCircle,
   X,
+  Check,
 } from "lucide-react";
 import {
   buildersApi,
@@ -57,7 +58,7 @@ function getGradient(id: string) {
 export default function BuildersConnectPage() {
   const { isAuthenticated } = useAuth();
   const [activeFilter, setActiveFilter] = useState<BuilderCategory | "All">(
-    "All"
+    "All",
   );
   const [builders, setBuilders] = useState<BuilderProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -223,9 +224,7 @@ export default function BuildersConnectPage() {
                     {builder.category}
                   </span>
                   <a
-                    href={
-                      builder.twitterUrl || builder.websiteUrl || "#"
-                    }
+                    href={builder.twitterUrl || builder.websiteUrl || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm font-medium text-brand-orange hover:text-orange-400 transition-colors flex items-center gap-1 group/link"
@@ -251,7 +250,7 @@ export default function BuildersConnectPage() {
         </p>
         {submitSuccess ? (
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 px-6 py-3 rounded-lg font-medium">
-            ✓ Profile submitted — pending review
+            <Check className="w-4 h-4" /> Profile submitted — pending review
           </div>
         ) : (
           <button
@@ -358,13 +357,13 @@ export default function BuildersConnectPage() {
                   }
                   className="w-full bg-[#0A0B1A] border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-brand-orange transition-colors"
                 >
-                  {(CATEGORIES.filter((c) => c !== "All") as BuilderCategory[]).map(
-                    (c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    )
-                  )}
+                  {(
+                    CATEGORIES.filter((c) => c !== "All") as BuilderCategory[]
+                  ).map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -387,7 +386,9 @@ export default function BuildersConnectPage() {
                   <input
                     type="url"
                     placeholder={placeholder}
-                    value={(form[key as keyof SubmitBuilderDto] as string) || ""}
+                    value={
+                      (form[key as keyof SubmitBuilderDto] as string) || ""
+                    }
                     onChange={(e) =>
                       setForm((f) => ({ ...f, [key]: e.target.value }))
                     }
@@ -417,7 +418,3 @@ export default function BuildersConnectPage() {
     </main>
   );
 }
-
-
-
-

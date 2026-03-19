@@ -1,19 +1,40 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { Sparkles, ListChecks, FileText, Shuffle, Loader2 } from "lucide-react";
+import React, { useState, useEffect, Suspense } from "react";
+import {
+  Sparkles,
+  ListChecks,
+  FileText,
+  Shuffle,
+  Loader2,
+  Coins,
+  Zap,
+  Layers,
+  FlaskConical,
+  Rocket,
+  BookOpen,
+  Check,
+  Code,
+} from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { coursesApi, type Course } from "@/lib/api/courses";
 
 type QuizFormat = "multi-choice" | "open-ended" | "mixed" | null;
 
-const COURSE_ICONS: Record<number, string> = {
-  1: "₿",
-  2: "⚡",
-  3: "📝",
-  4: "🧱",
-  5: "🔬",
-  6: "🚀",
+const COURSE_ICONS: Record<number, React.ReactNode> = {
+  0: <BookOpen className="w-5 h-5" />, // General (all modules)
+  1: <Coins className="w-5 h-5" />, // Bitcoin Fundamentals
+  2: <Zap className="w-5 h-5" />, // Introduction to Stacks
+  3: <FileText className="w-5 h-5" />, // Clarity Smart Contracts
+  4: <Code className="w-5 h-5" />, // Build dApps
+  5: <Layers className="w-5 h-5" />, // Advanced Smart Contract Patterns
+  6: <Rocket className="w-5 h-5" />, // Build Real Projects
+};
+
+const GENERAL_COURSE = {
+  id: 0,
+  title: "General Knowledge",
+  description: "Questions spanning all Stacks and Bitcoin modules.",
 };
 
 const FORMAT_OPTIONS = [
@@ -107,7 +128,7 @@ function AITutorForm() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {courses.map((course) => {
+              {[GENERAL_COURSE, ...courses].map((course) => {
                 const isSelected = topic === course.title;
                 return (
                   <button
@@ -121,10 +142,12 @@ function AITutorForm() {
                       }`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0
-                      ${isSelected ? "bg-[#F58320]/20" : "bg-[#2A2B4A]/60"}`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                      ${isSelected ? "bg-[#F58320]/20 text-[#F58320]" : "bg-[#2A2B4A]/60 text-[#8E90B0]"}`}
                     >
-                      {COURSE_ICONS[course.id] ?? "📚"}
+                      {COURSE_ICONS[course.id] ?? (
+                        <BookOpen className="w-5 h-5" />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p
@@ -139,8 +162,8 @@ function AITutorForm() {
                       )}
                     </div>
                     {isSelected && (
-                      <span className="ml-auto text-[#F58320] text-lg shrink-0">
-                        ✓
+                      <span className="ml-auto text-[#F58320] shrink-0">
+                        <Check className="w-5 h-5" />
                       </span>
                     )}
                   </button>
@@ -179,7 +202,6 @@ function AITutorForm() {
         </div>
 
         {/* Advanced toggle */}
-       
 
         {/* Generate Button */}
         <button
