@@ -27,9 +27,9 @@ function deriveModuleState(
   const pct = progressMap[course.id] ?? 0;
   if (pct === 100) return "completed";
   if (pct > 0) return "in-progress";
-  // First course always unlocked, rest locked until previous is done
   if (index === 0) return "in-progress";
   const prevCourse = allCourses[index - 1];
+  if (!prevCourse?.id) return "locked";
   const prevPct = progressMap[prevCourse.id] ?? 0;
   return prevPct === 100 ? "in-progress" : "locked";
 }
@@ -82,37 +82,44 @@ export default function LearningPathPage() {
         <div className="absolute top-0 bottom-0 left-6 w-[2px] bg-linear-to-b from-[#2A2B4A]/50 to-[#2A2B4A]/10 md:hidden" />
 
         <div className="flex flex-col gap-12 relative z-10">
-          {courses.map((course, index) => {
-            const state = deriveModuleState(course, progressMap, index, courses);
-            const progressPct = progressMap[course.id] ?? 0;
+          {courses
+            .filter((course) => course.lessons?.length > 0)
+            .map((course, index) => {
+              const state = deriveModuleState(
+                course,
+                progressMap,
+                index,
+                courses,
+              );
+              const progressPct = progressMap[course.id] ?? 0;
 
-            // Map backend lessons/steps to ModuleCard Step format
-            const steps: Step[] = course.lessons.map((lesson) => ({
-              title: lesson.title,
-              state:
-                (progressMap[course.id] ?? 0) === 100
-                  ? "completed"
-                  : index === 0 && lesson.id === 1
-                    ? "in-progress"
-                    : state === "locked"
-                      ? "locked"
-                      : "pending",
-            }));
+              // Map backend lessons/steps to ModuleCard Step format
+              const steps: Step[] = course.lessons.map((lesson) => ({
+                title: lesson.title,
+                state:
+                  (progressMap[course.id] ?? 0) === 100
+                    ? "completed"
+                    : index === 0 && lesson.id === 1
+                      ? "in-progress"
+                      : state === "locked"
+                        ? "locked"
+                        : "pending",
+              }));
 
-            return (
-              <ModuleCard
-                key={course.id}
-                id={course.id}
-                title={course.title}
-                description={course.description}
-                state={state}
-                icon={COURSE_ICONS[course.id] ?? <span>📚</span>}
-                steps={steps}
-                progressPercentage={progressPct > 0 ? progressPct : undefined}
-                alignment={index % 2 === 0 ? "left" : "right"}
-              />
-            );
-          })}
+              return (
+                <ModuleCard
+                  key={course.id}
+                  id={course.id}
+                  title={course.title}
+                  description={course.description}
+                  state={state}
+                  icon={COURSE_ICONS[course.id] ?? <span>📚</span>}
+                  steps={steps}
+                  progressPercentage={progressPct > 0 ? progressPct : undefined}
+                  alignment={index % 2 === 0 ? "left" : "right"}
+                />
+              );
+            })}
         </div>
 
         <FinalAssessmentCard />

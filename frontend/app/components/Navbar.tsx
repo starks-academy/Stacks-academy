@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShieldAlert } from "lucide-react";
 import WalletConnectButton from "./WalletConnectButton";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const navLinks = [
     { name: "Learning Path", href: "/learning-path" },
@@ -43,6 +46,15 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 text-brand-orange hover:text-orange-400 transition-colors font-medium text-sm"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  Admin
+                </Link>
+              )}
             </div>
             <WalletConnectButton />
           </div>
@@ -77,6 +89,16 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 px-3 py-2 text-base font-medium text-brand-orange hover:text-orange-400 hover:bg-white/5 rounded-md transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                <ShieldAlert className="w-4 h-4" />
+                Admin
+              </Link>
+            )}
             <div className="pt-2 px-3">
               <WalletConnectButton />
             </div>
