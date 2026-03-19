@@ -22,13 +22,15 @@ function deriveModuleState(
   course: Course,
   progressMap: Record<number, number>,
   index: number,
+  allCourses: Course[],
 ): ModuleState {
   const pct = progressMap[course.id] ?? 0;
   if (pct === 100) return "completed";
   if (pct > 0) return "in-progress";
   // First course always unlocked, rest locked until previous is done
   if (index === 0) return "in-progress";
-  const prevPct = progressMap[index] ?? 0; // previous course id = index (1-based)
+  const prevCourse = allCourses[index - 1];
+  const prevPct = progressMap[prevCourse.id] ?? 0;
   return prevPct === 100 ? "in-progress" : "locked";
 }
 
@@ -81,7 +83,7 @@ export default function LearningPathPage() {
 
         <div className="flex flex-col gap-12 relative z-10">
           {courses.map((course, index) => {
-            const state = deriveModuleState(course, progressMap, index);
+            const state = deriveModuleState(course, progressMap, index, courses);
             const progressPct = progressMap[course.id] ?? 0;
 
             // Map backend lessons/steps to ModuleCard Step format
