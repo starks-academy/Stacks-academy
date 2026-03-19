@@ -12,6 +12,7 @@ function AITutorForm() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const initialTopic = searchParams.get("topic") || "";
+  const isTopicLocked = !!initialTopic;
 
   const [topic, setTopic] = useState(initialTopic);
   const [selectedFormat, setSelectedFormat] = useState<QuizFormat>(null);
@@ -69,16 +70,29 @@ function AITutorForm() {
         {/* Topic Input */}
         <div>
           <label className="block text-[#8E90B0] font-medium mb-3">
-            What topic would you like to quiz yourself on?
+            {isTopicLocked
+              ? "Topic"
+              : "What topic would you like to quiz yourself on?"}
           </label>
-          <input
-            type="text"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
-            placeholder="e.g., Clarity Contracts, Stacks Architecture, POX"
-            className="w-full bg-[#14152C] text-white text-lg placeholder:text-[#8E90B0]/50 border border-[#2A2B4A] focus:border-[#F58320] rounded-xl px-6 py-4 outline-none transition-colors shadow-inner"
-          />
+          {isTopicLocked ? (
+            <div className="w-full bg-[#14152C] border border-[#F58320]/40 rounded-xl px-6 py-4 flex items-center gap-3">
+              <span className="text-white text-lg font-semibold flex-1">
+                {topic}
+              </span>
+              <span className="text-xs text-[#F58320] bg-[#F58320]/10 border border-[#F58320]/20 px-2.5 py-1 rounded-full shrink-0">
+                From Learning Path
+              </span>
+            </div>
+          ) : (
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+              placeholder="e.g., Clarity Contracts, Stacks Architecture, POX"
+              className="w-full bg-[#14152C] text-white text-lg placeholder:text-[#8E90B0]/50 border border-[#2A2B4A] focus:border-[#F58320] rounded-xl px-6 py-4 outline-none transition-colors shadow-inner"
+            />
+          )}
         </div>
 
         {/* Format Selection */}
