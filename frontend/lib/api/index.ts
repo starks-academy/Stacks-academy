@@ -31,7 +31,6 @@ export type {
   QuizSession,
   QuizQuestion,
   GradeResult,
-  QuizQuota,
   GenerateQuizDto,
   SubmitAnswersDto,
 } from "./assessments";

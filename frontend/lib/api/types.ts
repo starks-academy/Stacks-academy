@@ -10,7 +10,6 @@ export interface UserProfile {
   longestStreak: number;
   lastActivityAt: string | null;
   role: "user" | "admin";
-  isPro: boolean;
 }
 
 export interface UserStats {

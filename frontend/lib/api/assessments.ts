@@ -63,12 +63,6 @@ export interface GradeResult {
   results: QuestionResult[];
 }
 
-export interface QuizQuota {
-  used: number;
-  limit: number;
-  remaining: number;
-}
-
 // ── Request DTOs matching the backend GenerateQuizDto ─────────────────────
 
 export type QuizFormatDto = "multi_choice" | "open_ended" | "mixed";
@@ -102,7 +96,4 @@ export const assessmentsApi = {
 
   /** Get the user's past quiz sessions. */
   getHistory: () => request<QuizSession[]>("/assessments/history"),
-
-  /** Check remaining daily quiz quota. */
-  getQuota: () => request<QuizQuota>("/assessments/quota"),
 };
