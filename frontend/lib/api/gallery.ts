@@ -50,13 +50,35 @@ export const galleryApi = {
       body: JSON.stringify(dto),
     }),
 
-  delete: (id: string) =>
-    request<void>(`/gallery/${id}`, {
-      method: "DELETE",
-    }),
+  delete: (id: string) => request<void>(`/gallery/${id}`, { method: "DELETE" }),
 
   vote: (id: string) =>
-    request<{ upvoted: boolean }>(`/gallery/${id}/vote`, {
-      method: "POST",
+    request<{ upvoted: boolean }>(`/gallery/${id}/vote`, { method: "POST" }),
+
+  // ── Admin ──────────────────────────────────────────────────────────────────
+
+  /** [ADMIN] List all pending gallery projects */
+  getPending: (page = 1, limit = 50) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return request<{ data: GalleryProject[]; meta: object }>(
+      `/gallery/admin/pending?${params}`,
+    );
+  },
+
+  /** [ADMIN] Approve a project */
+  approveProject: (id: string, notes?: string) =>
+    request<GalleryProject>(`/gallery/admin/${id}/moderate`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "approved", notes }),
+    }),
+
+  /** [ADMIN] Reject a project */
+  rejectProject: (id: string, notes?: string) =>
+    request<GalleryProject>(`/gallery/admin/${id}/moderate`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "rejected", notes }),
     }),
 };

@@ -1,6 +1,12 @@
 import { request } from "@/lib/api/client";
 
-export type BuilderCategory = "Ecosystem" | "DeFi" | "NFTs" | "Tooling" | "Education" | "Infrastructure";
+export type BuilderCategory =
+  | "Ecosystem"
+  | "DeFi"
+  | "NFTs"
+  | "Tooling"
+  | "Education"
+  | "Infrastructure";
 
 export interface BuilderProfile {
   id: string;
@@ -42,4 +48,23 @@ export const buildersApi = {
       method: "POST",
       body: JSON.stringify(dto),
     }),
+
+  // ── Admin ──────────────────────────────────────────────────────────────────
+
+  /** [ADMIN] List all pending builder profiles */
+  getPending: () => request<BuilderProfile[]>("/builders/admin/pending"),
+
+  /** [ADMIN] Approve a builder profile */
+  approve: (id: string, notes?: string) =>
+    request<BuilderProfile>(`/builders/admin/${id}/approve`, {
+      method: "PATCH",
+      body: JSON.stringify({ notes }),
+    }),
+
+  /** [ADMIN] Reject (delete) a builder profile */
+  reject: (id: string, reason: string) =>
+    request<{ deleted: boolean; reason: string }>(
+      `/builders/admin/${id}/reject`,
+      { method: "PATCH", body: JSON.stringify({ reason }) },
+    ),
 };
