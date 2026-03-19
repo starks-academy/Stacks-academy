@@ -4,11 +4,10 @@ import { UserProfile } from "@/lib/api";
 
 interface RoleBadgeProps {
   role: UserProfile["role"];
-  isPro?: boolean;
   size?: "sm" | "md";
 }
 
-export default function RoleBadge({ role, isPro, size = "sm" }: RoleBadgeProps) {
+export default function RoleBadge({ role, size = "sm" }: RoleBadgeProps) {
   const textSize = size === "sm" ? "text-[10px]" : "text-xs";
   const px = size === "sm" ? "px-1.5 py-0.5" : "px-2 py-1";
 
@@ -21,14 +20,7 @@ export default function RoleBadge({ role, isPro, size = "sm" }: RoleBadgeProps) 
           Admin
         </span>
       )}
-      {isPro && (
-        <span
-          className={`${textSize} ${px} bg-linear-to-r from-brand-orange to-amber-400 text-white font-bold rounded uppercase tracking-wide`}
-        >
-          Pro
-        </span>
-      )}
-      {role === "user" && !isPro && (
+      {role === "user" && (
         <span
           className={`${textSize} ${px} bg-white/10 text-gray-300 font-medium rounded uppercase tracking-wide`}
         >

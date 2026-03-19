@@ -68,7 +68,7 @@ export default function ProfileHeader() {
                   </span>
                 )}
                 {/* Role badge */}
-                {user && <RoleBadge role={user.role} isPro={user.isPro} />}
+                {user && <RoleBadge role={user.role} />}
               </div>
 
               {walletAddress && (
