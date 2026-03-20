@@ -37,10 +37,17 @@ export default function FinalAssessmentCard() {
   }, [isAuthenticated]);
 
   const handleMint = async () => {
+    if (!cert) {
+      setMintError("Certificate data is unavailable. Please try again.");
+      return;
+    }
     setMinting(true);
     setMintError(null);
     try {
-      const minted = await certificatesApi.mint({ moduleId: 0, score: 100 });
+      const minted = await certificatesApi.mint({
+        moduleId: cert.moduleId,
+        score: cert.score,
+      });
       setCert(minted);
       setAlreadyMinted(true);
       setEligible(false);
@@ -152,7 +159,7 @@ export default function FinalAssessmentCard() {
             ) : eligible ? (
               <button
                 onClick={handleMint}
-                disabled={minting}
+                disabled={minting || !cert}
                 className="w-full py-4 bg-linear-to-r from-[#F58320] to-[#FFB067] text-[#0A0B1A] rounded-lg font-bold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(245,131,32,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {minting ? (
