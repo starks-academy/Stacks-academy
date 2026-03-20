@@ -1,24 +1,252 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Twitter,
   Globe,
   ExternalLink,
   Filter,
   Users,
-  Loader2,
   PlusCircle,
   X,
   Check,
+  Loader2,
 } from "lucide-react";
-import {
-  buildersApi,
-  BuilderProfile,
-  BuilderCategory,
-  SubmitBuilderDto,
-} from "@/lib/api/builders";
+import { BuilderCategory, SubmitBuilderDto } from "@/lib/api/builders";
 import { useAuth } from "@/context/AuthContext";
+
+interface BuilderProfile {
+  id: string;
+  name: string;
+  handle: string;
+  role: string;
+  description: string;
+  category: BuilderCategory;
+  twitterUrl?: string;
+  websiteUrl?: string;
+  avatarUrl?: string;
+}
+
+const MOCK_BUILDERS: BuilderProfile[] = [
+  {
+    id: "1",
+    name: "Muneeb Ali",
+    handle: "@muneeb",
+    role: "Co-founder, Stacks",
+    description:
+      "Building the internet of Bitcoin. Co-founder of Stacks and Hiro. Focused on bringing smart contracts and DeFi to Bitcoin.",
+    category: "Ecosystem",
+    twitterUrl: "https://twitter.com/muneeb",
+    websiteUrl: "https://stacks.co",
+  },
+  {
+    id: "2",
+    name: "Diwaker Gupta",
+    handle: "@diwakergupta",
+    role: "CTO, Hiro Systems",
+    description:
+      "Building developer tools and infrastructure for the Stacks ecosystem. Making Bitcoin programmable.",
+    category: "Tooling",
+    twitterUrl: "https://twitter.com/diwakergupta",
+    websiteUrl: "https://hiro.so",
+  },
+  {
+    id: "3",
+    name: "Jamil Dhanani",
+    handle: "@jamildhanani",
+    role: "Co-founder, Gamma",
+    description:
+      "Building Gamma — the leading NFT marketplace and creator platform on Stacks and Bitcoin.",
+    category: "NFTs",
+    twitterUrl: "https://twitter.com/jamildhanani",
+    websiteUrl: "https://gamma.io",
+  },
+  {
+    id: "4",
+    name: "Alex Miller",
+    handle: "@alexmillerbtc",
+    role: "Core Dev, ALEX DeFi",
+    description:
+      "Building ALEX — the DeFi hub on Bitcoin via Stacks. AMM, lending, and launchpad all in one protocol.",
+    category: "DeFi",
+    twitterUrl: "https://twitter.com/alexmillerbtc",
+    websiteUrl: "https://alexgo.io",
+  },
+  {
+    id: "5",
+    name: "Brittany Laughlin",
+    handle: "@brittanylaughlin",
+    role: "Executive Director, Stacks Foundation",
+    description:
+      "Growing the Stacks ecosystem through grants, education, and community initiatives. Empowering builders worldwide.",
+    category: "Ecosystem",
+    twitterUrl: "https://twitter.com/brittanylaughlin",
+    websiteUrl: "https://stacks.org",
+  },
+  {
+    id: "6",
+    name: "Friedger Müffke",
+    handle: "@friedger",
+    role: "Smart Contract Developer",
+    description:
+      "Open-source Clarity smart contract developer. Building tools and protocols for the Stacks ecosystem.",
+    category: "Infrastructure",
+    twitterUrl: "https://twitter.com/friedger",
+    websiteUrl: "https://friedger.de",
+  },
+  {
+    id: "7",
+    name: "Marvin Janssen",
+    handle: "@MarvinJanssen",
+    role: "Lead Developer, Ryder",
+    description:
+      "Building Ryder — hardware wallet and identity solutions for Bitcoin and Stacks. Clarity smart contract expert.",
+    category: "Infrastructure",
+    twitterUrl: "https://twitter.com/MarvinJanssen",
+  },
+  {
+    id: "8",
+    name: "Hero Gamer",
+    handle: "@HeroGamer_",
+    role: "Founder, StacksNFT",
+    description:
+      "Pioneer of the Stacks NFT ecosystem. Building communities and tools around Bitcoin-secured digital art.",
+    category: "NFTs",
+    twitterUrl: "https://twitter.com/HeroGamer_",
+  },
+  {
+    id: "9",
+    name: "Clarity Language",
+    handle: "@ClarityLang",
+    role: "Education & Tooling",
+    description:
+      "Official account for the Clarity smart contract language. Resources, tutorials, and updates for Stacks developers.",
+    category: "Education",
+    twitterUrl: "https://twitter.com/ClarityLang",
+    websiteUrl: "https://clarity-lang.org",
+  },
+  {
+    id: "10",
+    name: "Hiro Systems",
+    handle: "@hirosystems",
+    role: "Developer Tools",
+    description:
+      "Building the best developer experience on Bitcoin. Hiro Wallet, Clarinet, Stacks API, and more.",
+    category: "Tooling",
+    twitterUrl: "https://twitter.com/hirosystems",
+    websiteUrl: "https://hiro.so",
+  },
+  {
+    id: "11",
+    name: "StackingDAO",
+    handle: "@StackingDAO",
+    role: "Liquid Stacking Protocol",
+    description:
+      "Liquid stacking on Stacks. Stack STX and receive stSTX — earn Bitcoin yield while staying liquid in DeFi.",
+    category: "DeFi",
+    twitterUrl: "https://twitter.com/StackingDAO",
+    websiteUrl: "https://stackingdao.com",
+  },
+  {
+    id: "12",
+    name: "Stacks Academy",
+    handle: "@StacksAcademy",
+    role: "Education Platform",
+    description:
+      "Learn to build on Bitcoin with Stacks. Interactive courses, quizzes, and NFT certificates for Clarity developers.",
+    category: "Education",
+    twitterUrl: "https://twitter.com/Stacks",
+    websiteUrl: "https://stacks.co",
+  },
+  {
+    id: "13",
+    name: "Stacks",
+    handle: "@Stacks",
+    role: "Official Stacks Ecosystem",
+    description:
+      "The official account for the Stacks ecosystem. Smart contracts and decentralized apps for Bitcoin. Building the future of the open internet.",
+    category: "Ecosystem",
+    twitterUrl: "https://x.com/Stacks?s=20",
+    websiteUrl: "https://stacks.co",
+  },
+  {
+    id: "14",
+    name: "Stacks Foundation",
+    handle: "@StacksFdn",
+    role: "Ecosystem Foundation",
+    description:
+      "Supporting the growth and development of the Stacks ecosystem through grants, research, and community programs.",
+    category: "Ecosystem",
+    twitterUrl: "https://twitter.com/StacksFdn",
+    websiteUrl: "https://stacks.org",
+  },
+  {
+    id: "15",
+    name: "Bitcoin Frontier Fund",
+    handle: "@BTCFrontierFund",
+    role: "Ecosystem Fund",
+    description:
+      "Investing in and accelerating the best projects building on Bitcoin. Supporting the next generation of Bitcoin builders.",
+    category: "Ecosystem",
+    twitterUrl: "https://twitter.com/BTCFrontierFund",
+    websiteUrl: "https://bitcoinfrontierfund.com",
+  },
+  {
+    id: "16",
+    name: "Stacks Accelerator",
+    handle: "@StacksAccel",
+    role: "Startup Accelerator",
+    description:
+      "Accelerating startups building on Stacks and Bitcoin. Providing funding, mentorship, and resources to early-stage teams.",
+    category: "Ecosystem",
+    twitterUrl: "https://twitter.com/StacksAccel",
+    websiteUrl: "https://stacksaccelerate.com",
+  },
+  {
+    id: "17",
+    name: "Trust Machines",
+    handle: "@trustmachines",
+    role: "Bitcoin App Company",
+    description:
+      "Building the most important apps on Bitcoin. Backed by $150M to grow the Bitcoin economy through Stacks-powered applications.",
+    category: "Ecosystem",
+    twitterUrl: "https://twitter.com/trustmachines",
+    websiteUrl: "https://trustmachines.co",
+  },
+  {
+    id: "18",
+    name: "Leather Wallet",
+    handle: "@LeatherBTC",
+    role: "Bitcoin Wallet",
+    description:
+      "The leading Bitcoin wallet for Stacks and Ordinals. Connect to DeFi, NFTs, and dApps across the Bitcoin ecosystem.",
+    category: "Infrastructure",
+    twitterUrl: "https://twitter.com/LeatherBTC",
+    websiteUrl: "https://leather.io",
+  },
+  {
+    id: "19",
+    name: "Xverse Wallet",
+    handle: "@XverseApp",
+    role: "Bitcoin Web3 Wallet",
+    description:
+      "Your gateway to Bitcoin Web3. Manage BTC, STX, Ordinals, and BRC-20 tokens. Connect to Stacks dApps seamlessly.",
+    category: "Infrastructure",
+    twitterUrl: "https://twitter.com/XverseApp",
+    websiteUrl: "https://xverse.app",
+  },
+  {
+    id: "20",
+    name: "Velar",
+    handle: "@VelarBTC",
+    role: "DeFi Protocol",
+    description:
+      "The first perpetuals DEX on Bitcoin via Stacks. Trade, earn, and build on the most secure blockchain in the world.",
+    category: "DeFi",
+    twitterUrl: "https://twitter.com/VelarBTC",
+    websiteUrl: "https://velar.co",
+  },
+];
 
 const CATEGORIES: (BuilderCategory | "All")[] = [
   "All",
@@ -60,8 +288,6 @@ export default function BuildersConnectPage() {
   const [activeFilter, setActiveFilter] = useState<BuilderCategory | "All">(
     "All",
   );
-  const [builders, setBuilders] = useState<BuilderProfile[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -77,31 +303,20 @@ export default function BuildersConnectPage() {
     websiteUrl: "",
   });
 
-  useEffect(() => {
-    const cat =
-      activeFilter === "All" ? undefined : (activeFilter as BuilderCategory);
-    setLoading(true);
-    buildersApi
-      .getBuilders(cat)
-      .then(setBuilders)
-      .catch(() => setBuilders([]))
-      .finally(() => setLoading(false));
-  }, [activeFilter]);
+  const builders =
+    activeFilter === "All"
+      ? MOCK_BUILDERS
+      : MOCK_BUILDERS.filter((b) => b.category === activeFilter);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitError(null);
-    try {
-      await buildersApi.submitProfile(form);
-      setSubmitSuccess(true);
-      setShowSubmitModal(false);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Submission failed.";
-      setSubmitError(msg);
-    } finally {
-      setSubmitting(false);
-    }
+    // Simulate submission delay
+    await new Promise((r) => setTimeout(r, 800));
+    setSubmitSuccess(true);
+    setShowSubmitModal(false);
+    setSubmitting(false);
   };
 
   return (
@@ -142,11 +357,7 @@ export default function BuildersConnectPage() {
       </div>
 
       {/* Builder Cards */}
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="w-10 h-10 text-brand-orange animate-spin" />
-        </div>
-      ) : builders.length === 0 ? (
+      {builders.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <p className="text-lg">No builders found in this category.</p>
         </div>
