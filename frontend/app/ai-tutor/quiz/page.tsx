@@ -182,6 +182,11 @@ function ActiveQuizInner() {
       } else {
         sessionStorage.removeItem("quizNextCourse");
       }
+      if (courseId) {
+        sessionStorage.setItem("quizCourseId", String(courseId));
+      } else {
+        sessionStorage.removeItem("quizCourseId");
+      }
 
       // If quiz was passed and came from a learning path course, mark all steps complete
       const passed = result.passed ?? result.score >= 60;

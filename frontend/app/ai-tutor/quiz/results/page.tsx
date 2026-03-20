@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   RotateCcw,
@@ -9,12 +9,20 @@ import {
   AlertCircle,
   Sparkles,
   ArrowRight,
+  Award,
+  Loader2,
+  ExternalLink,
+  Star,
 } from "lucide-react";
 import ScoreSummaryCard from "../../components/ScoreSummaryCard";
 import ResultsBreakdownCard from "../../components/ResultsBreakdownCard";
 import { GradeResult } from "@/lib/api/assessments";
+import { certificatesApi, Certificate } from "@/lib/api/certificates";
+import { useAuth } from "@/context/AuthContext";
 
 export default function QuizResultsPage() {
+  const { isAuthenticated } = useAuth();
+
   const [result] = useState<GradeResult | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -35,8 +43,53 @@ export default function QuizResultsPage() {
     return sessionStorage.getItem("quizNextCourse") ?? "";
   });
 
+  const [courseId] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    const raw = sessionStorage.getItem("quizCourseId");
+    return raw ? parseInt(raw, 10) : null;
+  });
+
+  const [isEligible, setIsEligible] = useState(false);
+  const [alreadyMinted, setAlreadyMinted] = useState(false);
+  const [minting, setMinting] = useState(false);
+  const [mintedCert, setMintedCert] = useState<Certificate | null>(null);
+  const [mintError, setMintError] = useState<string | null>(null);
+
+  const passed = result ? (result.passed ?? result.score >= 60) : false;
+
+  // Check certificate eligibility when quiz is passed and came from learning path
+  useEffect(() => {
+    if (!passed || !isAuthenticated || !courseId) return;
+    certificatesApi
+      .checkEligibility()
+      .then((e) => {
+        setIsEligible(e.isEligible);
+        setAlreadyMinted(e.alreadyMinted);
+        if (e.certificate) setMintedCert(e.certificate);
+      })
+      .catch(() => {});
+  }, [passed, isAuthenticated, courseId]);
+
+  const handleMint = async () => {
+    if (!result || !courseId) return;
+    setMinting(true);
+    setMintError(null);
+    try {
+      const cert = await certificatesApi.mint({
+        moduleId: courseId,
+        score: result.score,
+      });
+      setMintedCert(cert);
+      setAlreadyMinted(true);
+      setIsEligible(false);
+    } catch (e: any) {
+      setMintError(e?.message ?? "Minting failed. Please try again.");
+    } finally {
+      setMinting(false);
+    }
+  };
+
   if (!result) {
-    // Navigated here directly without completing a quiz
     return (
       <div className="min-h-screen bg-[#0A0B1A] pt-32 pb-20 px-4 flex justify-center">
         <div className="w-full max-w-3xl flex flex-col items-center text-center gap-6">
@@ -64,16 +117,75 @@ export default function QuizResultsPage() {
   const correct = result.correctCount;
   const incorrect = result.incorrectCount;
   const percentage = result.score;
-  const passed = result.passed ?? percentage >= 60;
 
   let performanceLabel = "Keep Trying";
   if (percentage >= 80) performanceLabel = "Excellent";
   else if (percentage >= 60) performanceLabel = "Good Job";
   else if (percentage >= 40) performanceLabel = "Fair";
 
+  const showCongrats = passed && isEligible;
+  const showAlreadyMinted = passed && alreadyMinted && mintedCert;
+
   return (
     <div className="min-h-screen bg-[#0A0B1A] pt-32 pb-20 px-4 md:px-8 font-sans flex justify-center">
       <div className="w-full max-w-3xl flex flex-col items-center">
+        {/* Congratulations banner — curriculum complete */}
+        {(showCongrats || showAlreadyMinted) && (
+          <div className="w-full mb-6 bg-linear-to-r from-[#F58320]/20 via-[#FFB067]/10 to-[#F58320]/20 border border-[#F58320]/40 rounded-2xl p-6 text-center">
+            <div className="flex justify-center mb-3">
+              <div className="w-16 h-16 rounded-full bg-[#F58320]/20 border-2 border-[#F58320]/50 flex items-center justify-center">
+                <Star className="w-8 h-8 text-[#F58320]" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              🎉 Curriculum Complete!
+            </h2>
+            <p className="text-[#8E90B0] text-sm max-w-md mx-auto">
+              You&apos;ve completed the entire Stacks Academy curriculum.
+              You&apos;ve earned a SIP-009 NFT certificate permanently recorded
+              on the Stacks blockchain.
+            </p>
+
+            {mintError && (
+              <p className="mt-3 text-red-400 text-sm">{mintError}</p>
+            )}
+
+            {showAlreadyMinted && mintedCert?.txId ? (
+              <a
+                href={`https://explorer.hiro.so/txid/${mintedCert.txId}?chain=mainnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#14152C] border border-[#F58320]/40 text-[#F58320] font-semibold hover:bg-[#1A1A32] transition-colors"
+              >
+                View Certificate on Explorer{" "}
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            ) : showAlreadyMinted ? (
+              <Link href="/certificates">
+                <button className="mt-4 px-6 py-3 rounded-xl bg-[#14152C] border border-[#F58320]/40 text-[#F58320] font-semibold hover:bg-[#1A1A32] transition-colors">
+                  View My Certificates
+                </button>
+              </Link>
+            ) : (
+              <button
+                onClick={handleMint}
+                disabled={minting}
+                className="mt-4 inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-linear-to-r from-[#F58320] to-[#FFB067] text-[#0A0B1A] font-bold hover:shadow-[0_0_20px_rgba(245,131,32,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {minting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Minting…
+                  </>
+                ) : (
+                  <>
+                    <Award className="w-5 h-5" /> Mint NFT Certificate
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="w-full bg-[#0F1023] rounded-3xl p-6 md:p-10 border border-[#2A2B4A]/50 shadow-2xl relative">
           {/* Pass / Fail banner */}
           <div
@@ -101,7 +213,6 @@ export default function QuizResultsPage() {
             percentage={percentage}
             performanceLabel={performanceLabel}
           />
-
           <ResultsBreakdownCard
             correctCount={correct}
             incorrectCount={incorrect}
@@ -118,19 +229,11 @@ export default function QuizResultsPage() {
               {result.results.map((r, i) => (
                 <div
                   key={r.questionId}
-                  className={`rounded-xl border p-5 ${
-                    r.correct
-                      ? "bg-[#052E16]/30 border-[#22C55E]/40"
-                      : "bg-[#450A0A]/30 border-[#EF4444]/40"
-                  }`}
+                  className={`rounded-xl border p-5 ${r.correct ? "bg-[#052E16]/30 border-[#22C55E]/40" : "bg-[#450A0A]/30 border-[#EF4444]/40"}`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span
-                      className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                        r.correct
-                          ? "bg-[#22C55E]/20 text-[#22C55E]"
-                          : "bg-[#EF4444]/20 text-[#EF4444]"
-                      }`}
+                      className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.correct ? "bg-[#22C55E]/20 text-[#22C55E]" : "bg-[#EF4444]/20 text-[#EF4444]"}`}
                     >
                       {r.correct ? "Correct" : "Incorrect"}
                     </span>
@@ -152,7 +255,7 @@ export default function QuizResultsPage() {
             </div>
           )}
 
-          {/* Claude's AI feedback */}
+          {/* AI feedback */}
           {result.feedback && (
             <div className="mt-6 bg-[#14152C] border border-[#2A2B4A] rounded-xl p-6">
               <h3 className="text-white font-bold mb-3 flex items-center gap-2">
@@ -174,26 +277,23 @@ export default function QuizResultsPage() {
               className="w-full"
             >
               <button className="w-full py-4 rounded-xl flex items-center justify-center gap-2 border-2 border-[#2A2B4A] bg-[#14152C] text-white font-bold hover:border-[#F58320]/50 hover:bg-[#1A1A32] transition-colors shadow-sm">
-                <RotateCcw className="w-5 h-5" />
-                Try Again
+                <RotateCcw className="w-5 h-5" /> Try Again
               </button>
             </Link>
 
             {passed && nextCourse ? (
               <Link
-                href={`/ai-tutor?topic=${encodeURIComponent(nextCourse)}&nextCourse=`}
+                href={`/ai-tutor?topic=${encodeURIComponent(nextCourse)}`}
                 className="w-full"
               >
                 <button className="w-full py-4 rounded-xl flex items-center justify-center gap-2 border-2 border-[#F58320] bg-linear-to-r from-[#F58320] to-[#FFB067] text-[#0A0B1A] font-bold hover:shadow-[0_0_20px_rgba(245,131,32,0.4)] transition-all">
-                  <ArrowRight className="w-5 h-5" />
-                  Next Course
+                  <ArrowRight className="w-5 h-5" /> Next Course
                 </button>
               </Link>
             ) : (
               <Link href="/ai-tutor" className="w-full">
                 <button className="w-full py-4 rounded-xl flex items-center justify-center gap-2 border-2 border-[#F58320] bg-linear-to-r from-[#F58320] to-[#FFB067] text-[#0A0B1A] font-bold hover:shadow-[0_0_20px_rgba(245,131,32,0.4)] transition-all">
-                  <Plus className="w-5 h-5" />
-                  New Quiz
+                  <Plus className="w-5 h-5" /> New Quiz
                 </button>
               </Link>
             )}
