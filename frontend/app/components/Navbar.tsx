@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X, ShieldAlert } from "lucide-react";
+import Image from "next/image";
 import WalletConnectButton from "./WalletConnectButton";
 import { useAuth } from "@/context/AuthContext";
 
@@ -25,9 +26,13 @@ export default function Navbar() {
           {/* Logo */}
           <div className="shrink-0 flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-md bg-brand-orange/20 flex items-center justify-center border border-brand-orange">
-                <div className="w-4 h-4 bg-brand-orange rounded-sm rotate-45"></div>
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Stacks Academy"
+                width={36}
+                height={36}
+                className="rounded-md"
+              />
               <span className="text-xl font-bold text-white tracking-tight">
                 Stacks Academy
               </span>
