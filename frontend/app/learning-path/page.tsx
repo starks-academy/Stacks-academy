@@ -55,18 +55,17 @@ export default function LearningPathPage() {
       .then(async (data) => {
         setCourses(data);
 
-        // Fetch progress for each course if authenticated
         if (isAuthenticated) {
-          const entries = await Promise.allSettled(
-            data.map((c) => coursesApi.getCourseProgress(c.id)),
-          );
-          const map: Record<number, number> = {};
-          entries.forEach((result, i) => {
-            if (result.status === "fulfilled") {
-              map[data[i].id] = result.value.progressPercentage;
-            }
-          });
-          setProgressMap(map);
+          try {
+            const summary = await coursesApi.getProgressSummary();
+            const map: Record<number, number> = {};
+            summary.courses.forEach((c) => {
+              map[c.courseId] = c.progressPercentage;
+            });
+            setProgressMap(map);
+          } catch {
+            // fallback: leave progressMap empty
+          }
         }
       })
       .catch(() => {})

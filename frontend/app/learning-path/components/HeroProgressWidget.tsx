@@ -18,17 +18,10 @@ export default function HeroProgressWidget({
   useEffect(() => {
     if (!isAuthenticated) return;
     coursesApi
-      .getCurriculum()
-      .then(async (courses) => {
-        const filtered = courses.filter((c) => c.lessons?.length > 0);
-        setTotalModules(filtered.length);
-        const results = await Promise.allSettled(
-          filtered.map((c) => coursesApi.getCourseProgress(c.id)),
-        );
-        const completed = results.filter(
-          (r) => r.status === "fulfilled" && r.value.progressPercentage === 100,
-        ).length;
-        setCompletedModules(completed);
+      .getProgressSummary()
+      .then((summary) => {
+        setTotalModules(summary.totalCourses);
+        setCompletedModules(summary.completedCourses);
       })
       .catch(() => {});
   }, [isAuthenticated]);

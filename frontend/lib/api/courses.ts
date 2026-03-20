@@ -26,6 +26,21 @@ export interface CourseProgress {
   progressPercentage: number;
 }
 
+export interface ProgressSummary {
+  completedCourses: number;
+  totalCourses: number;
+  overallPercentage: number;
+  completedSteps: number;
+  totalSteps: number;
+  courses: {
+    courseId: number;
+    progressPercentage: number;
+    completedSteps: number;
+    totalSteps: number;
+    isComplete: boolean;
+  }[];
+}
+
 export const coursesApi = {
   getCurriculum: () => request<Course[]>("/courses"),
 
@@ -34,11 +49,15 @@ export const coursesApi = {
   getCourseProgress: (id: number) =>
     request<CourseProgress>(`/courses/${id}/progress`),
 
+  getProgressSummary: () =>
+    request<ProgressSummary>("/courses/progress/summary"),
+
   completeStep: (courseId: number, lessonId: number, stepId: number) =>
     request(
       `/courses/${courseId}/lessons/${lessonId}/steps/${stepId}/complete`,
-      {
-        method: "POST",
-      },
+      { method: "POST" },
     ),
+
+  completeCourse: (courseId: number) =>
+    request(`/courses/${courseId}/complete`, { method: "POST" }),
 };
