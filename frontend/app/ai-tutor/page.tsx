@@ -60,6 +60,8 @@ function AITutorForm() {
 
   const initialTopic = searchParams.get("topic") || "";
   const isTopicLocked = !!initialTopic;
+  const courseId = searchParams.get("courseId") || "";
+  const nextCourse = searchParams.get("nextCourse") || "";
 
   const [topic, setTopic] = useState(initialTopic);
   const [selectedFormat, setSelectedFormat] = useState<QuizFormat>(null);
@@ -84,6 +86,8 @@ function AITutorForm() {
       topic: topic.trim(),
       format: selectedFormat!,
       ...(includeAdvanced ? { advanced: "1" } : {}),
+      ...(courseId ? { courseId } : {}),
+      ...(nextCourse ? { nextCourse } : {}),
     });
     router.push(`/ai-tutor/quiz?${params.toString()}`);
   };

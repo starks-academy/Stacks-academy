@@ -2,7 +2,14 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { RotateCcw, Plus, Trophy, AlertCircle, Sparkles } from "lucide-react";
+import {
+  RotateCcw,
+  Plus,
+  Trophy,
+  AlertCircle,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
 import ScoreSummaryCard from "../../components/ScoreSummaryCard";
 import ResultsBreakdownCard from "../../components/ResultsBreakdownCard";
 import { GradeResult } from "@/lib/api/assessments";
@@ -21,6 +28,11 @@ export default function QuizResultsPage() {
   const [topic] = useState<string>(() => {
     if (typeof window === "undefined") return "your quiz";
     return sessionStorage.getItem("quizTopic") ?? "your quiz";
+  });
+
+  const [nextCourse] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return sessionStorage.getItem("quizNextCourse") ?? "";
   });
 
   if (!result) {
@@ -167,12 +179,24 @@ export default function QuizResultsPage() {
               </button>
             </Link>
 
-            <Link href="/ai-tutor" className="w-full">
-              <button className="w-full py-4 rounded-xl flex items-center justify-center gap-2 border-2 border-[#F58320] bg-gradient-to-r from-[#F58320] to-[#FFB067] text-[#0A0B1A] font-bold hover:shadow-[0_0_20px_rgba(245,131,32,0.4)] transition-all">
-                <Plus className="w-5 h-5" />
-                New Quiz
-              </button>
-            </Link>
+            {passed && nextCourse ? (
+              <Link
+                href={`/ai-tutor?topic=${encodeURIComponent(nextCourse)}&nextCourse=`}
+                className="w-full"
+              >
+                <button className="w-full py-4 rounded-xl flex items-center justify-center gap-2 border-2 border-[#F58320] bg-linear-to-r from-[#F58320] to-[#FFB067] text-[#0A0B1A] font-bold hover:shadow-[0_0_20px_rgba(245,131,32,0.4)] transition-all">
+                  <ArrowRight className="w-5 h-5" />
+                  Next Course
+                </button>
+              </Link>
+            ) : (
+              <Link href="/ai-tutor" className="w-full">
+                <button className="w-full py-4 rounded-xl flex items-center justify-center gap-2 border-2 border-[#F58320] bg-linear-to-r from-[#F58320] to-[#FFB067] text-[#0A0B1A] font-bold hover:shadow-[0_0_20px_rgba(245,131,32,0.4)] transition-all">
+                  <Plus className="w-5 h-5" />
+                  New Quiz
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

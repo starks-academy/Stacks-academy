@@ -15,6 +15,7 @@ import {
   QuizQuestion,
   QuizFormatDto,
 } from "@/lib/api/assessments";
+import { coursesApi } from "@/lib/api/courses";
 
 // Map frontend format labels → backend QuizFormatDto values
 const FORMAT_MAP: Record<string, QuizFormatDto> = {
@@ -94,6 +95,10 @@ function ActiveQuizInner() {
   const formatParam = searchParams.get("format") || "mixed";
   const format: QuizFormatDto = FORMAT_MAP[formatParam] ?? "mixed";
   const includeAdvanced = searchParams.get("advanced") === "1";
+  const nextCourse = searchParams.get("nextCourse") || "";
+  const courseId = searchParams.get("courseId")
+    ? parseInt(searchParams.get("courseId")!, 10)
+    : null;
 
   const [session, setSession] = useState<QuizSession | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -172,11 +177,34 @@ function ActiveQuizInner() {
       const result = await assessmentsApi.submit(session.id, { answers });
       sessionStorage.setItem("quizResult", JSON.stringify(result));
       sessionStorage.setItem("quizTopic", topic);
+      if (nextCourse) {
+        sessionStorage.setItem("quizNextCourse", nextCourse);
+      } else {
+        sessionStorage.removeItem("quizNextCourse");
+      }
+
+      // If quiz was passed and came from a learning path course, mark all steps complete
+      const passed = result.passed ?? result.score >= 60;
+      if (passed && courseId) {
+        try {
+          const course = await coursesApi.getCourse(courseId);
+          await Promise.allSettled(
+            course.lessons.flatMap((lesson) =>
+              lesson.steps.map((step) =>
+                coursesApi.completeStep(courseId, lesson.id, step.id),
+              ),
+            ),
+          );
+        } catch {
+          // Non-critical — don't block navigation if progress update fails
+        }
+      }
+
       router.push("/ai-tutor/quiz/results");
     } catch {
       router.push("/ai-tutor/quiz/results");
     }
-  }, [session, answers, topic, router]);
+  }, [session, answers, topic, nextCourse, courseId, router]);
 
   const handleNext = () => {
     if (currentIndex < totalQuestions - 1) {

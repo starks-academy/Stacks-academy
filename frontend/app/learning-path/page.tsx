@@ -93,12 +93,12 @@ export default function LearningPathPage() {
         <div className="flex flex-col gap-12 relative z-10">
           {courses
             .filter((course) => course.lessons?.length > 0)
-            .map((course, index) => {
+            .map((course, index, filteredCourses) => {
               const state = deriveModuleState(
                 course,
                 progressMap,
                 index,
-                courses,
+                filteredCourses,
               );
               const progressPct = progressMap[course.id] ?? 0;
 
@@ -128,6 +128,7 @@ export default function LearningPathPage() {
                   steps={steps}
                   progressPercentage={progressPct > 0 ? progressPct : undefined}
                   alignment={index % 2 === 0 ? "left" : "right"}
+                  nextCourseTitle={courses[index + 1]?.title}
                 />
               );
             })}
