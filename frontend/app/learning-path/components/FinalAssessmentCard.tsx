@@ -44,8 +44,10 @@ export default function FinalAssessmentCard() {
       setCert(minted);
       setAlreadyMinted(true);
       setEligible(false);
-    } catch (e: any) {
-      setMintError(e?.message ?? "Minting failed. Please try again.");
+    } catch (e: unknown) {
+      setMintError(
+        e instanceof Error ? e.message : "Minting failed. Please try again.",
+      );
     } finally {
       setMinting(false);
     }

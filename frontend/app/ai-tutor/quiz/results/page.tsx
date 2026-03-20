@@ -82,8 +82,10 @@ export default function QuizResultsPage() {
       setMintedCert(cert);
       setAlreadyMinted(true);
       setIsEligible(false);
-    } catch (e: any) {
-      setMintError(e?.message ?? "Minting failed. Please try again.");
+    } catch (e: unknown) {
+      setMintError(
+        e instanceof Error ? e.message : "Minting failed. Please try again.",
+      );
     } finally {
       setMinting(false);
     }

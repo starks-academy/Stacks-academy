@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { User, Trophy, Zap } from "lucide-react";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { useXp } from "@/hooks/useXp";
 import { coursesApi } from "@/lib/api/courses";
@@ -106,10 +107,11 @@ export default function HeroProgressWidget() {
           <div className="flex items-center gap-4 bg-[#0A0B1A]/50 p-4 rounded-xl border border-[#2A2B4A]/50 shrink-0 w-full md:w-auto">
             <div className="w-12 h-12 rounded-full bg-linear-to-tr from-[#1F1B40] to-[#2A2B4A] flex items-center justify-center relative overflow-hidden">
               {user?.avatarUrl ? (
-                <img
+                <Image
                   src={user.avatarUrl}
                   alt={displayName}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <>
